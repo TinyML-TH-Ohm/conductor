@@ -14,6 +14,7 @@ export interface Features {
     }
     characteristic: BluetoothRemoteGATTCharacteristic | undefined
     polling: NodeJS.Timeout | undefined
+    isReading: boolean
     previousState: number
     onUpdate: () => void
   }

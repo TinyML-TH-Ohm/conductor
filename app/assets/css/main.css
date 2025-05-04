@@ -1,2 +1,6 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
+
+@utility card {
+  @apply ring ring-default rounded;
+}

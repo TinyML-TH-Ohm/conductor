@@ -14,7 +14,11 @@ const State = {
 
 const LABELS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
-const btn = useTemplateRef('btn')
+const STRUCTURE_MAP = {
+  Int32: { fn: DataView.prototype.getInt32, bytes: 4 },
+  StrokePoints: { fn: getStrokePoints, bytes: (STROKE_POINT_COUNT * 2 * 1) },
+}
+
 const canvas = useTemplateRef('canvas')
 
 const features: Features = {
@@ -32,6 +36,7 @@ const features: Features = {
     },
     characteristic: undefined,
     polling: undefined,
+    isReading: false,
     previousState: 0,
     onUpdate: onUpdateStroke,
   },
@@ -45,11 +50,11 @@ const features: Features = {
     onUpdate: onUpdatePrediction,
   },
 }
-
-const StructureMap = {
-  Int32: { fn: DataView.prototype.getInt32, bytes: 4 },
-  StrokePoints: { fn: getStrokePoints, bytes: (STROKE_POINT_COUNT * 2 * 1) },
-}
+const logs = shallowRef({
+  index: -1,
+  prediction: 'unknown',
+  score: 0,
+})
 
 function onUpdateStroke() {
   const data = features.stroke.data
@@ -105,8 +110,27 @@ function onUpdateStroke() {
 
 function onUpdatePrediction() {
   const index = features.prediction.data.index ?? -1
-  const score = features.prediction.data.score
-  console.log({ prediction: LABELS[index], score })
+  const score = features.prediction.data.score ?? 0
+  logs.value = {
+    index,
+    prediction: LABELS[index],
+    score,
+  }
+}
+
+async function onDisconnect() {
+  // Stroke
+  if (features.stroke.polling) {
+    clearInterval(features.stroke.polling)
+  }
+  features.stroke.polling = undefined
+  features.stroke.characteristic = undefined
+
+  // Prediction
+  if (features.prediction.characteristic) {
+    await features.prediction.characteristic.stopNotifications()
+    features.prediction.characteristic = undefined
+  }
 }
 
 async function connect() {
@@ -117,20 +141,7 @@ async function connect() {
   if (!device.gatt)
     return
 
-  device.addEventListener('gattserverdisconnected', async () => {
-    // Stroke
-    if (features.stroke.polling) {
-      clearInterval(features.stroke.polling)
-    }
-    features.stroke.polling = undefined
-    features.stroke.characteristic = undefined
-
-    // Prediction
-    if (features.prediction.characteristic) {
-      await features.prediction.characteristic.stopNotifications()
-      features.prediction.characteristic = undefined
-    }
-  })
+  device.addEventListener('gattserverdisconnected', onDisconnect)
 
   const server = await device.gatt.connect()
   const service = await server.getPrimaryService(SERVICE_UUID)
@@ -142,11 +153,15 @@ async function connect() {
 
     if (k === 'stroke') {
       const columns = ['states', 'lengths', 'points'] as const
-
       features.stroke.polling = setInterval(async () => {
+        if (features.stroke.isReading)
+          return
+
         const data = await features.stroke.characteristic?.readValue()
         if (!data)
           return
+
+        features.stroke.isReading = true
 
         let pointer = 0
         let i = 0
@@ -155,11 +170,11 @@ async function connect() {
           const unpackedValue = (() => {
             switch (structure) {
               case 'Int32':{
-                const fn = StructureMap[structure].fn.bind(data)
+                const fn = STRUCTURE_MAP[structure].fn.bind(data)
                 return fn(pointer, true)
               }
               case 'StrokePoints':{
-                const fn = StructureMap[structure].fn
+                const fn = STRUCTURE_MAP[structure].fn
                 return fn(data, pointer)
               }
             }
@@ -170,16 +185,17 @@ async function connect() {
           if (column.length > MAX_RECORDS) {
             column.shift()
           }
-          pointer += StructureMap[structure].bytes
+          pointer += STRUCTURE_MAP[structure].bytes
           i++
         })
 
         features.stroke.onUpdate()
+        features.stroke.isReading = false
       }, 200)
     }
 
     if (k === 'prediction') {
-      features[k].characteristic.addEventListener('characteristicvaluechanged', (event) => {
+      features[k].characteristic.oncharacteristicvaluechanged = (event) => {
         const target = event.target as BluetoothRemoteGATTCharacteristic
         const data = target.value
         if (!data || data.byteLength !== 2)
@@ -192,7 +208,7 @@ async function connect() {
         features[k].data.score = score
 
         features[k].onUpdate()
-      })
+      }
       await features[k].characteristic.startNotifications()
     }
   }
@@ -210,21 +226,47 @@ function getStrokePoints(dataview: DataView<ArrayBufferLike>, byteOffset: number
   }
   return result
 }
+
+onUnmounted(() => onDisconnect)
 </script>
 
 <template>
-  <div>
-    <UButton
-      ref="btn"
-      @click="connect"
-    >
+  <div class="max-w-[1000px] mx-auto font-mono rounded overflow-hidden p-4 grid gap-4">
+    <div class="flex gap-4">
+      <div class="card">
+        <canvas
+          ref="canvas"
+          width="600"
+          height="600"
+        />
+      </div>
+
+      <div class="grow flex flex-col gap-4">
+        <div class="grid gap-4 p-4 card">
+          <p class="font-extrabold">
+            Logs:
+          </p>
+          <div>
+            <p>- Prediction: {{ logs.prediction }}</p>
+            <p>- Score: {{ logs.score }}%</p>
+          </div>
+        </div>
+
+        <Audio :index="logs.index" class="grow" />
+      </div>
+    </div>
+
+    <UButton size="xl" block @click="connect">
       Connect
     </UButton>
 
-    <canvas
-      ref="canvas"
-      width="600"
-      height="600"
-    />
+    <div class="card p-4 grid gap-4">
+      <p class="font-extrabold">
+        Notes:
+      </p>
+      <p class="text-warning">
+        - Only 0, 1, or 2 are supported.
+      </p>
+    </div>
   </div>
 </template>
