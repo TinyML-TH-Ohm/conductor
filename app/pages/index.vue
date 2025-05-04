@@ -1,45 +1,49 @@
 <script setup lang="ts">
-interface Point {
-  x: number
-  y: number
-}
-
-interface Ble {
-  structures: ('Int32' | 'StrokePoints')[]
-  data: {
-    states: number[]
-    lengths: number[]
-    points: (Point[])[]
-  }
-  characteristic: BluetoothRemoteGATTCharacteristic | undefined
-  polling: NodeJS.Timeout | undefined
-  previousState: number
-  onUpdate: () => void
-}
+import type { Features, Point } from '~~/shared/types'
 
 const MAX_RECORDS = 128
 const STROKE_POINT_COUNT = 160
 const SERVICE_UUID = '4798e0f2-0000-4d68-af64-8a8f5258404e'
 const BLE_STROKE_UUID = '4798e0f2-300a-4d68-af64-8a8f5258404e'
+const BLE_PREDICTION_UUID = '4798e0f2-300b-4d68-af64-8a8f5258404e'
+const State = {
+  WAITING: 0,
+  DRAWING: 1,
+  DONE: 2,
+} as const
+
+const LABELS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 const btn = useTemplateRef('btn')
 const canvas = useTemplateRef('canvas')
 
-const ble: Ble = {
-  structures: [
-    'Int32',
-    'Int32',
-    'StrokePoints',
-  ],
-  data: {
-    states: [],
-    lengths: [],
-    points: [],
+const features: Features = {
+  stroke: {
+    uuid: BLE_STROKE_UUID,
+    structures: [
+      'Int32',
+      'Int32',
+      'StrokePoints',
+    ],
+    data: {
+      states: [],
+      lengths: [],
+      points: [],
+    },
+    characteristic: undefined,
+    polling: undefined,
+    previousState: 0,
+    onUpdate: onUpdateStroke,
   },
-  characteristic: undefined,
-  polling: undefined,
-  previousState: 0,
-  onUpdate,
+  prediction: {
+    uuid: BLE_PREDICTION_UUID,
+    data: {
+      index: undefined,
+      score: undefined,
+    },
+    characteristic: undefined,
+    onUpdate: onUpdatePrediction,
+  },
 }
 
 const StructureMap = {
@@ -47,16 +51,16 @@ const StructureMap = {
   StrokePoints: { fn: getStrokePoints, bytes: (STROKE_POINT_COUNT * 2 * 1) },
 }
 
-function onUpdate() {
-  const data = ble.data
-  const length = data.lengths.at(-1)!
+function onUpdateStroke() {
+  const data = features.stroke.data
   const state = data.states.at(-1)!
+  const length = data.lengths.at(-1)!
   const points = data.points.at(-1)!.slice(0, length)
 
-  if ((state === 2) && (ble.previousState !== 2)) {
+  if ((state === State.DONE) && (features.stroke.previousState !== State.DONE)) {
     // TODO
   }
-  ble.previousState = state
+  features.stroke.previousState = state
 
   const _canvas = canvas.value!
   const ctx = _canvas.getContext('2d')!
@@ -66,11 +70,15 @@ function onUpdate() {
   const height = _canvas.height
   const halfHeight = height / 2
 
-  ctx.fillStyle = '#000'
+  const style = getComputedStyle(document.documentElement)
+  const bgClr = style.getPropertyValue('--background-color-default')
+  const textClr = style.getPropertyValue('--ui-text')
+
+  ctx.fillStyle = bgClr
   ctx.fillRect(0, 0, width, height)
 
-  if (state === 1) {
-    ctx.strokeStyle = '#fff'
+  if (state === State.DRAWING) {
+    ctx.strokeStyle = textClr
     ctx.beginPath()
     for (let i = 0; i < length; ++i) {
       const x = points[i].x
@@ -95,6 +103,12 @@ function onUpdate() {
   }
 }
 
+function onUpdatePrediction() {
+  const index = features.prediction.data.index ?? -1
+  const score = features.prediction.data.score
+  console.log({ prediction: LABELS[index], score })
+}
+
 async function connect() {
   const device = await navigator.bluetooth.requestDevice({
     filters: [{ services: [SERVICE_UUID] }],
@@ -103,52 +117,85 @@ async function connect() {
   if (!device.gatt)
     return
 
-  device.addEventListener('gattserverdisconnected', () => {
-    if (ble.polling) {
-      clearInterval(ble.polling)
-      ble.polling = undefined
-      ble.characteristic = undefined
+  device.addEventListener('gattserverdisconnected', async () => {
+    // Stroke
+    if (features.stroke.polling) {
+      clearInterval(features.stroke.polling)
+    }
+    features.stroke.polling = undefined
+    features.stroke.characteristic = undefined
+
+    // Prediction
+    if (features.prediction.characteristic) {
+      await features.prediction.characteristic.stopNotifications()
+      features.prediction.characteristic = undefined
     }
   })
 
   const server = await device.gatt.connect()
   const service = await server.getPrimaryService(SERVICE_UUID)
-  ble.characteristic = await service.getCharacteristic(BLE_STROKE_UUID)
-  const columns = ['states', 'lengths', 'points'] as const
 
-  ble.polling = setInterval(async () => {
-    const data = await ble.characteristic?.readValue()
-    if (!data)
-      return
+  const keys = Object.keys(features) as (keyof typeof features)[]
 
-    let pointer = 0
-    let i = 0
+  for (const k of keys) {
+    features[k].characteristic = await service.getCharacteristic(features[k].uuid)
 
-    ble.structures.forEach((structure) => {
-      const unpackedValue = (() => {
-        switch (structure) {
-          case 'Int32':{
-            const fn = StructureMap[structure].fn.bind(data)
-            return fn(pointer, true)
+    if (k === 'stroke') {
+      const columns = ['states', 'lengths', 'points'] as const
+
+      features.stroke.polling = setInterval(async () => {
+        const data = await features.stroke.characteristic?.readValue()
+        if (!data)
+          return
+
+        let pointer = 0
+        let i = 0
+
+        features.stroke.structures.forEach((structure) => {
+          const unpackedValue = (() => {
+            switch (structure) {
+              case 'Int32':{
+                const fn = StructureMap[structure].fn.bind(data)
+                return fn(pointer, true)
+              }
+              case 'StrokePoints':{
+                const fn = StructureMap[structure].fn
+                return fn(data, pointer)
+              }
+            }
+          })()
+
+          const column = features.stroke.data[columns[i]]
+          column.push(unpackedValue as any)
+          if (column.length > MAX_RECORDS) {
+            column.shift()
           }
-          case 'StrokePoints':{
-            const fn = StructureMap[structure].fn
-            return fn(data, pointer)
-          }
-        }
-      })()
+          pointer += StructureMap[structure].bytes
+          i++
+        })
 
-      const column = ble.data[columns[i]]
-      column.push(unpackedValue as any)
-      if (column.length > MAX_RECORDS) {
-        column.shift()
-      }
-      pointer += StructureMap[structure].bytes
-      i++
-    })
+        features.stroke.onUpdate()
+      }, 200)
+    }
 
-    ble.onUpdate()
-  }, 200)
+    if (k === 'prediction') {
+      features[k].characteristic.addEventListener('characteristicvaluechanged', (event) => {
+        const target = event.target as BluetoothRemoteGATTCharacteristic
+        const data = target.value
+        if (!data || data.byteLength !== 2)
+          return
+
+        const index = data.getInt8(0)
+        const score = data.getUint8(1)
+
+        features[k].data.index = index
+        features[k].data.score = score
+
+        features[k].onUpdate()
+      })
+      await features[k].characteristic.startNotifications()
+    }
+  }
 }
 
 function getStrokePoints(dataview: DataView<ArrayBufferLike>, byteOffset: number) {
@@ -163,13 +210,6 @@ function getStrokePoints(dataview: DataView<ArrayBufferLike>, byteOffset: number
   }
   return result
 }
-
-onMounted(() => {
-  const _canvas = canvas.value!
-  const ctx = _canvas.getContext('2d')!
-  ctx.fillStyle = '#000'
-  ctx.fillRect(0, 0, _canvas.width, _canvas.height)
-})
 </script>
 
 <template>
