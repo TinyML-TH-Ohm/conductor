@@ -50,10 +50,18 @@ const features: Features = {
     onUpdate: onUpdatePrediction,
   },
 }
-const logs = shallowRef({
-  index: -1,
-  prediction: 'unknown',
+const logs = ref<{
+  indexes: Set<number>
+  index: number | undefined
+  prediction: string | undefined
+  score: number
+  connected: boolean
+}>({
+  indexes: new Set(),
+  index: undefined,
+  prediction: undefined,
   score: 0,
+  connected: false,
 })
 
 function onUpdateStroke() {
@@ -63,7 +71,7 @@ function onUpdateStroke() {
   const points = data.points.at(-1)!.slice(0, length)
 
   if ((state === State.DONE) && (features.stroke.previousState !== State.DONE)) {
-    // TODO
+    // TODO saved points
   }
   features.stroke.previousState = state
 
@@ -93,16 +101,10 @@ function onUpdateStroke() {
 
       if (i === 0) {
         ctx.moveTo(xCanvas, yCanvas)
+        continue
       }
-      else if (i === (length - 1)) {
-        ctx.lineTo(xCanvas + 5, yCanvas + 5)
-        ctx.lineTo(xCanvas - 5, yCanvas - 5)
-        ctx.moveTo(xCanvas + 5, yCanvas - 5)
-        ctx.moveTo(xCanvas - 5, yCanvas + 5)
-      }
-      else {
-        ctx.lineTo(xCanvas, yCanvas)
-      }
+
+      ctx.lineTo(xCanvas, yCanvas)
     }
     ctx.stroke()
   }
@@ -111,11 +113,20 @@ function onUpdateStroke() {
 function onUpdatePrediction() {
   const index = features.prediction.data.index ?? -1
   const score = features.prediction.data.score ?? 0
-  logs.value = {
-    index,
-    prediction: LABELS[index],
-    score,
+
+  logs.value.index = index
+  logs.value.prediction = LABELS[index]
+  logs.value.score = score
+
+  if (score < 50)
+    return
+
+  if (logs.value.indexes.has(index)) {
+    logs.value.indexes.delete(index)
+    return
   }
+
+  logs.value.indexes.add(index)
 }
 
 async function onDisconnect() {
@@ -140,6 +151,8 @@ async function connect() {
 
   if (!device.gatt)
     return
+
+  logs.value.connected = true
 
   device.addEventListener('gattserverdisconnected', onDisconnect)
 
@@ -233,12 +246,16 @@ onUnmounted(() => onDisconnect)
 <template>
   <div class="max-w-[1000px] mx-auto font-mono rounded overflow-hidden p-4 grid gap-4">
     <div class="flex gap-4">
-      <div class="card">
+      <div class="card relative">
         <canvas
           ref="canvas"
           width="600"
           height="600"
         />
+
+        <div class="card absolute top-4 right-4 text-3xl size-20 flex-center">
+          {{ logs.prediction }}
+        </div>
       </div>
 
       <div class="grow flex flex-col gap-4">
@@ -247,17 +264,33 @@ onUnmounted(() => onDisconnect)
             Logs:
           </p>
           <div>
+            <p>- Connected: {{ logs.connected }}</p>
+            <p>- Indexes: {{ Array.from(logs.indexes) }}</p>
+            <p>- Index: {{ logs.index }}</p>
             <p>- Prediction: {{ logs.prediction }}</p>
-            <p>- Score: {{ logs.score }}%</p>
+            <p>
+              - Score:
+              <span
+                :class="logs.score > 80 ? 'text-success' : logs.score > 50 ? 'text-warning' : 'text-error' "
+              >
+                {{ logs.score }}%
+              </span>
+            </p>
           </div>
         </div>
 
-        <Audio :index="logs.index" class="grow" />
+        <Audio :indexes="logs.indexes" class="grow" />
       </div>
     </div>
 
-    <UButton size="xl" block @click="connect">
-      Connect
+    <UButton
+      size="xl"
+      block
+      class="font-semibold"
+      :disabled="logs.connected"
+      @click="connect"
+    >
+      {{ logs.connected ? 'Connected' : 'Connect' }}
     </UButton>
 
     <div class="card p-4 grid gap-4">
@@ -265,7 +298,7 @@ onUnmounted(() => onDisconnect)
         Notes:
       </p>
       <p class="text-warning">
-        - Only 0, 1, or 2 are supported.
+        - Only 0 (cello), 1 (viola), 2 (violin 1) or 3 (violin 2) are supported.
       </p>
     </div>
   </div>
