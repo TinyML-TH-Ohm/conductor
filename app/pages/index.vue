@@ -121,6 +121,9 @@ function onUpdatePrediction() {
   if (score < 50)
     return
 
+  if (![0, 1, 2, 3].includes(index))
+    return
+
   if (logs.value.indexes.has(index)) {
     logs.value.indexes.delete(index)
     return
@@ -253,7 +256,7 @@ onUnmounted(() => onDisconnect)
           height="600"
         />
 
-        <div class="card absolute top-4 right-4 text-3xl size-20 flex-center">
+        <div class="card absolute top-4 right-4 text-2xl size-16 flex-center">
           {{ logs.prediction }}
         </div>
       </div>
@@ -288,6 +291,7 @@ onUnmounted(() => onDisconnect)
       block
       class="font-semibold"
       :disabled="logs.connected"
+      variant="subtle"
       @click="connect"
     >
       {{ logs.connected ? 'Connected' : 'Connect' }}

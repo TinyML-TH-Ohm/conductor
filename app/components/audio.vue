@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-
 const props = defineProps<{
   indexes: Set<number>
 }>()
@@ -8,72 +6,88 @@ const props = defineProps<{
 const instruments = ref<{
   id: number
   name: string
-  ref: HTMLAudioElement | undefined
+  el: HTMLAudioElement | undefined
   src: string
   color: string
 }[]>([
   {
     id: 0,
     name: 'Cello',
-    ref: undefined,
+    el: undefined,
     src: '/audios/cello.mp3',
-    color: 'bg-info',
+    color: 'info',
   },
   {
     id: 1,
     name: 'Viola',
-    ref: undefined,
+    el: undefined,
     src: '/audios/viola.mp3',
-    color: 'bg-error',
+    color: 'error',
   },
   {
     id: 2,
     name: 'Violin 1',
-    ref: undefined,
+    el: undefined,
     src: '/audios/violin1.mp3',
-    color: 'bg-warning',
+    color: 'warning',
   },
   {
     id: 3,
     name: 'Violin 2',
-    ref: undefined,
+    el: undefined,
     src: '/audios/violin2.mp3',
-    color: 'bg-success',
+    color: 'success',
   },
 ])
+const currentTime = shallowRef(0)
 
 watch(() => props.indexes, (ids) => {
-  instruments.value.forEach((instrument) => {
-    if (ids.has(instrument.id)) {
-      instrument.ref?.play()
+  for (const ins of instruments.value) {
+    if (!ins.el)
+      continue
+
+    if (ids.has(ins.id)) {
+      ins.el.currentTime = currentTime.value + 0.1
+      ins.el.play()
     }
     else {
-      instrument.ref?.pause()
+      ins.el.pause()
     }
-  })
+  }
 }, { deep: true, flush: 'post' })
+
+function updateTime(event: Event) {
+  const el = event.target as HTMLAudioElement
+  if (el.played && el.currentTime > currentTime.value) {
+    currentTime.value = el.currentTime
+  }
+}
 </script>
 
 <template>
-  <div
-    class="card grid grid-rows-4 gap-4 p-4 *:rounded *:transition-opacity *:duration-500 *:flex *:items-center *:justify-center *:text-xl *:text-inverted"
-  >
-    <div
-      v-for="instrument in instruments"
-      :key="instrument.id"
-      :class="[
-        instrument.color,
-        props.indexes.has(instrument.id) ? 'opacity-100' : 'opacity-50']"
+  <div class="card grid grid-rows-4 gap-4 p-4">
+    <UButton
+      v-for="ins in instruments"
+      :key="ins.id"
+      :color="ins.color as any"
+      :disabled="!props.indexes.has(ins.id)"
+      variant="subtle"
+      block
+      class="text-xl "
     >
-      {{ instrument.name }}
-    </div>
+      {{ ins.name }}
+    </UButton>
 
     <audio
-      v-for="instrument in instruments"
-      :key="instrument.id"
-      :ref="(el) => instrument.ref = el as HTMLAudioElement"
-      :src="instrument.src"
-      class="sr-only"
+      v-for="ins in instruments"
+      :key="ins.id"
+      :ref="(el) => ins.el = el as HTMLAudioElement"
+      :src="ins.src"
+      class="sr-only disabled:opacity-50"
+      preload="auto"
+      @timeupdate="updateTime"
     />
+
+    <p>{{ currentTime }}</p>
   </div>
 </template>
