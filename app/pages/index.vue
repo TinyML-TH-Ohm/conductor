@@ -19,7 +19,7 @@ const STRUCTURE_MAP = {
   StrokePoints: { fn: getStrokePoints, bytes: (STROKE_POINT_COUNT * 2 * 1) },
 }
 
-const canvas = useTemplateRef('canvas')
+const canvasEl = useTemplateRef('canvas')
 
 const features: Features = {
   stroke: {
@@ -75,12 +75,12 @@ function onUpdateStroke() {
   }
   features.stroke.previousState = state
 
-  const _canvas = canvas.value!
-  const ctx = _canvas.getContext('2d')!
+  const canvas = canvasEl.value!
+  const ctx = canvas.getContext('2d')!
 
-  const width = _canvas.width
+  const width = canvas.width
   const halfWidth = width / 2
-  const height = _canvas.height
+  const height = canvas.height
   const halfHeight = height / 2
 
   const style = getComputedStyle(document.documentElement)
@@ -247,8 +247,8 @@ onUnmounted(() => onDisconnect)
 </script>
 
 <template>
-  <div class="max-w-[1000px] mx-auto font-mono rounded overflow-hidden p-4 grid gap-4">
-    <div class="flex gap-4">
+  <div class="container @container mx-auto font-mono rounded overflow-hidden p-4 grid gap-4">
+    <div class="flex flex-col gap-4 @min-[800px]:flex-row">
       <div class="card relative">
         <canvas
           ref="canvas"
@@ -282,20 +282,24 @@ onUnmounted(() => onDisconnect)
           </div>
         </div>
 
-        <Audio :indexes="logs.indexes" class="grow" />
+        <div class="card p-4 pt-0 grow">
+          <Orchestra :indexes="logs.indexes" />
+        </div>
       </div>
     </div>
 
-    <UButton
-      size="xl"
-      block
-      class="font-semibold"
-      :disabled="logs.connected"
-      variant="subtle"
-      @click="connect"
-    >
-      {{ logs.connected ? 'Connected' : 'Connect' }}
-    </UButton>
+    <div>
+      <UButton
+        size="xl"
+        block
+        class="font-semibold"
+        :disabled="logs.connected"
+        variant="subtle"
+        @click="connect"
+      >
+        {{ logs.connected ? 'Connected' : 'Connect' }}
+      </UButton>
+    </div>
 
     <div class="card p-4 grid gap-4">
       <p class="font-extrabold">
