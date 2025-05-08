@@ -35,6 +35,9 @@ function onPredict(v: { index: number, label: string, score: number }) {
 
 <template>
   <div class="container @container mx-auto font-mono rounded overflow-hidden p-4 grid gap-4">
+    <h1 class="text-3xl my-4 flex justify-center">
+      <UIcon name="i-lucide:chef-hat" />rchestra Conductor
+    </h1>
     <div class="flex flex-col gap-4 @min-[800px]:flex-row">
       <div class="card p-4 relative">
         <DrawCanvas
