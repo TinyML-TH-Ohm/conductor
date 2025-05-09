@@ -10,7 +10,7 @@ const cells = ref<{
 }[]>([])
 
 const width = 300
-const height = 175
+const height = 110
 const arcs = 4
 const lines = 12
 const startX = width / 2
@@ -70,7 +70,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
+  <div class="relative">
     <svg
       width="100%"
       height="100%"
@@ -78,7 +78,7 @@ onMounted(() => {
       xmlns="http://www.w3.org/2000/svg"
     >
       <g
-        class="group stroke-1 stroke-(--ui-text-dimmed)/50"
+        class="group stroke-2 stroke-(--ui-border)"
         :data-cello="props.indexes.has(0)"
         :data-viola="props.indexes.has(1)"
         :data-violin1="props.indexes.has(2)"
@@ -99,50 +99,51 @@ onMounted(() => {
         <circle
           :cx="startX"
           :cy="startY - 4"
-          r="4"
-          class="fill-(--ui-text)"
+          r="3"
+          class="stroke-1 stroke-(--ui-text) fill-transparent"
+          style="vector-effect: non-scaling-stroke"
         />
       </g>
 
       <g
-        class="group text-[0.5rem]"
+        class="group text-[0.3rem]"
         :data-cello="props.indexes.has(0)"
         :data-viola="props.indexes.has(1)"
         :data-violin1="props.indexes.has(2)"
         :data-violin2="props.indexes.has(3)"
       >
         <text
-          x="229"
-          y="122"
+          x="205"
+          y="74"
           class="fill-info/50 group-data-[cello=true]:fill-info-800"
-          transform="rotate(68 229 122)"
+          transform="rotate(68 205 74)"
         >
           Cello
         </text>
 
         <text
-          x="174"
-          y="78"
-          class="fill-error/50 group-data-[viola=true]:fill-error-600"
-          transform="rotate(24 174 78)"
+          x="167"
+          y="44"
+          class="fill-error/60 group-data-[viola=true]:fill-error-600"
+          transform="rotate(24 167 44)"
         >
           Viola
         </text>
 
         <text
-          x="100"
-          y="90"
+          x="116"
+          y="52"
           class="fill-success/50 group-data-[violin1=true]:fill-success-800"
-          transform="rotate(-23 100 90)"
+          transform="rotate(-23 116 52)"
         >
           Violin 2
         </text>
 
         <text
-          x="61"
-          y="148"
+          x="87"
+          y="90"
           class="fill-warning/50 group-data-[violin2=true]:fill-warning-800"
-          transform="rotate(-67 61 148)"
+          transform="rotate(-70 87 90)"
         >
           Violin 1
         </text>

@@ -230,14 +230,14 @@ onUnmounted(() => onDisconnect)
 </script>
 
 <template>
-  <div>
+  <div class="relative">
     <p class="font-extrabold">
       Draw:
     </p>
 
     <div
       v-if="props.connected"
-      class="card absolute top-4 right-4 text-2xl size-16 flex-center"
+      class="card absolute top-0 right-0 text-xl size-12 flex-center"
     >
       {{ props.prediction }}
     </div>
@@ -249,7 +249,7 @@ onUnmounted(() => onDisconnect)
       <UButton
         size="lg"
         :disabled="props.connected"
-        variant="subtle"
+        variant="soft"
         @click="connect"
       >
         {{ props.connected ? 'Connected' : 'Connect' }}
@@ -258,8 +258,8 @@ onUnmounted(() => onDisconnect)
 
     <canvas
       ref="canvas"
-      width="600"
-      height="600"
+      width="300"
+      height="300"
     />
   </div>
 </template>

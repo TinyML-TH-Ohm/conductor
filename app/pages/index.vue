@@ -31,15 +31,55 @@ function onPredict(v: { index: number, label: string, score: number }) {
 
   logs.value.indexes.add(v.index)
 }
+
+const cm = useColorMode()
 </script>
 
 <template>
-  <div class="container @container mx-auto font-mono rounded overflow-hidden p-4 grid gap-4">
-    <h1 class="text-3xl my-4 flex justify-center">
-      <UIcon name="i-lucide:chef-hat" />rchestra Conductor
-    </h1>
-    <div class="flex flex-col gap-4 @min-[800px]:flex-row">
-      <div class="card p-4 relative">
+  <div class="max-w-[1200px] mx-auto font-mono rounded overflow-hidden p-4 flex flex-col gap-4">
+    <div class="flex items-center justify-between">
+      <h1 class="text-2xl flex justify-between">
+        <UIcon name="i-lucide:chef-hat" class="text-success size-7" /><span>rchestra Conductor</span>
+      </h1>
+
+      <div class="flex gap-2">
+        <UButton
+          icon="i-lucide:github"
+          variant="soft"
+          size="sm"
+          to="https://github.com/chubetho/Orchestra_Conductor"
+          target="_blank"
+        />
+
+        <UButton
+          :icon="cm.preference === 'light' ? 'i-lucide:sun' : 'i-lucide:moon'"
+          size="sm"
+          variant="soft"
+          @click="cm.preference = cm.preference === 'light' ? 'dark' : 'light'"
+        />
+      </div>
+    </div>
+
+    <div class="card p-4 relative max-h-[600px]">
+      <p class="font-extrabold">
+        Orchestra:
+      </p>
+      <Orchestra
+        :indexes="logs.indexes"
+        class=""
+      />
+
+      <UBadge
+        class="absolute top-4 right-4 font-semibold rounded-full"
+        :color="logs.connected ? 'success' : 'error'"
+        variant="soft"
+      >
+        {{ logs.connected ? 'connected' : 'disconnected' }}
+      </UBadge>
+    </div>
+
+    <div class="grid grid-cols-3 gap-4">
+      <div class="card p-4">
         <DrawCanvas
           :connected="logs.connected"
           :prediction="logs.prediction"
@@ -48,43 +88,33 @@ function onPredict(v: { index: number, label: string, score: number }) {
         />
       </div>
 
-      <div class="grow flex flex-col gap-4">
-        <div class="grid gap-4 p-4 card">
-          <p class="font-extrabold">
-            Logs:
+      <div class="card p-4 flex flex-col gap-4">
+        <p class="font-extrabold">
+          Logs:
+        </p>
+        <div>
+          <p>- Indexes: <span class="text-info">{{ Array.from(logs.indexes) }}</span></p>
+          <p>- Index: <span class="text-info">{{ logs.index }}</span></p>
+          <p>- Prediction: <span class="text-info">{{ logs.prediction }}</span></p>
+          <p>
+            - Score:
+            <span
+              :class="logs.score > 80 ? 'text-success' : logs.score > 50 ? 'text-warning' : 'text-error' "
+            >
+              {{ logs.score }}%
+            </span>
           </p>
-          <div>
-            <p>- Connected: <span :class="logs.connected ? 'text-success' : 'text-error'">{{ logs.connected }}</span></p>
-            <p>- Indexes: <span class="text-info">{{ Array.from(logs.indexes) }}</span></p>
-            <p>- Index: <span class="text-info">{{ logs.index }}</span></p>
-            <p>- Prediction: <span class="text-info">{{ logs.prediction }}</span></p>
-            <p>
-              - Score:
-              <span
-                :class="logs.score > 80 ? 'text-success' : logs.score > 50 ? 'text-warning' : 'text-error' "
-              >
-                {{ logs.score }}%
-              </span>
-            </p>
-          </div>
-        </div>
-
-        <div class="card p-4 grow">
-          <p class="font-extrabold">
-            Orchestra:
-          </p>
-          <Orchestra :indexes="logs.indexes" />
         </div>
       </div>
-    </div>
 
-    <div class="card p-4 grid gap-4">
-      <p class="font-extrabold">
-        Notes:
-      </p>
-      <p class="text-warning">
-        - Only 0 (cello), 1 (viola), 2 (violin 1) or 3 (violin 2) are supported.
-      </p>
+      <div class="card p-4 flex flex-col gap-4">
+        <p class="font-extrabold">
+          Notes:
+        </p>
+        <p class="text-warning">
+          - Only 0 (cello), 1 (viola), 2 (violin 1) or 3 (violin 2) are supported.
+        </p>
+      </div>
     </div>
   </div>
 </template>
