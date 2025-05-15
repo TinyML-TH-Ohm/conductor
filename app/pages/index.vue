@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, SERVICE_UUID } from '~~/shared/constants'
+
 const logs = ref<{
   indexes: Set<number>
   index: number | undefined
@@ -107,13 +109,28 @@ const cm = useColorMode()
         </div>
       </div>
 
-      <div class="card p-4 flex flex-col gap-4">
-        <p class="font-extrabold">
-          Notes:
+      <div class="card p-4 flex flex-col gap-4 text-sm">
+        <p class="font-extrabold text-base">
+          Info:
         </p>
-        <p class="text-warning">
-          - Only 0 (cello), 1 (viola), 2 (violin 1) or 3 (violin 2) are supported.
-        </p>
+        <div class="grid gap-1">
+          <span class="text-dimmed">Service UUID: </span>
+          <span>{{ SERVICE_UUID }}</span>
+        </div>
+        <div class="grid gap-1">
+          <span class="text-dimmed">Stroke UUID: </span>
+          <span>{{ BLE_STROKE_UUID }}</span>
+        </div>
+        <div class="grid gap-1">
+          <span class="text-dimmed">Prediction UUID: </span>
+          <span>{{ BLE_PREDICTION_UUID }}</span>
+        </div>
+        <div class="grid gap-1">
+          <span class="text-dimmed">Note: </span>
+          <span class="text-warning">
+            - Only 0 (cello), 1 (viola), 2 (violin 1) or 3 (violin 2) are supported.
+          </span>
+        </div>
       </div>
     </div>
   </div>

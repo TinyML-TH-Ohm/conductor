@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Features, Point } from '~~/shared/types'
+import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, SERVICE_UUID } from '~~/shared/constants'
 
 const props = defineProps<{
   prediction: string | undefined
@@ -13,9 +14,6 @@ const emit = defineEmits<{
 
 const MAX_RECORDS = 128
 const STROKE_POINT_COUNT = 160
-const SERVICE_UUID = '4798e0f2-0000-4d68-af64-8a8f5258404e'
-const BLE_STROKE_UUID = '4798e0f2-300a-4d68-af64-8a8f5258404e'
-const BLE_PREDICTION_UUID = '4798e0f2-300b-4d68-af64-8a8f5258404e'
 const State = {
   WAITING: 0,
   DRAWING: 1,
