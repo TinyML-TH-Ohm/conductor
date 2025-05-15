@@ -76,6 +76,4 @@ BLE_PREDICTION_UUID = '4798e0f2-300b-4d68-af64-8a8f5258404e'
 
 If you modify these UUIDs in the Arduino sketch, you **must** also update them in the web application code for the connection to work correctly.
 
-## License
-
 ## Contact
