@@ -9,6 +9,7 @@ export default nuxt(
       rules: {
         'no-console': 'off',
       },
+      ignores: ['arduino/**'],
     },
   ),
 )

@@ -20,7 +20,7 @@ Conductor is a web application designed to empower future conductors by allowing
 
 Before you begin, ensure you have the following installed:
 
-- [Node.js](https://nodejs.org/) (LTS version recommended)
+- [Node.js](https://nodejs.org/)
 - [PNPM](https://pnpm.io/installation)
 - [Arduino IDE](https://www.arduino.cc/en/software)
 
@@ -46,13 +46,15 @@ The web application should now be running at [http://localhost:3000](http://loca
 
 **3. Arduino Setup:**
 
-Navigate to the `arduino/` directory in your terminal.
+Open [/arduino](/arduino/) in the Arduino IDE.
 
-```bash
-cd arduino
-```
+The following packages are needed:
 
-Open this folder in the Arduino IDE. Ensure you have the necessary board support package installed for the Arduino Nano 33 BLE Sense. Upload the sketch to your Arduino.
+- [Arduino BLE](https://docs.arduino.cc/libraries/arduinoble/) (Library Manager)
+- [Arduino_LSM9DS1](https://github.com/arduino-libraries/Arduino_LSM9DS1) (Library Manager)
+- [tflite-micro-arduino.zip](/tflite-micro-arduino.zip) (`Sketch > Include Library > Add Zip Library`)
+
+Now upload the sketch to your Arduino.
 
 ### Deployment
 
