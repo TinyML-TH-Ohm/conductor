@@ -16,7 +16,7 @@ limitations under the License.
 
 #include <cmath>
 
-#include "magic_wand_model_data.h"
+#include "model.h"
 #include "rasterize_stroke.h"
 #include "tensorflow/lite/micro/micro_interpreter.h"
 #include "tensorflow/lite/micro/micro_log.h"
@@ -103,9 +103,8 @@ alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 const tflite::Model *model = nullptr;
 tflite::MicroInterpreter *interpreter = nullptr;
 
-constexpr int label_count = 10;
-const char *labels[label_count] = { "0", "1", "2", "3", "4",
-                                    "5", "6", "7", "8", "9" };
+constexpr int label_count = 2;
+const char *labels[label_count] = { "0", "1" };
 
 void SetupIMU() {
   // Make sure we are pulling measurements into a FIFO.
