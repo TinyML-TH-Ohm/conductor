@@ -27,5 +27,4 @@ logs
 
 arduino/python/*
 !arduino/python/data
-!arduino/python/train.ipynb
-!arduino/python/train.py
+!arduino/python/*.ipynb

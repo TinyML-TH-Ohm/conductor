@@ -541,7 +541,7 @@ void setup() {
 
   // Map the model into a usable data structure. This doesn't involve any
   // copying or parsing, it's a very lightweight operation.
-  model = tflite::GetModel(g_magic_wand_model_data);
+  model = tflite::GetModel(quantized_model_tfl);
   if (model->version() != TFLITE_SCHEMA_VERSION) {
     MicroPrintf(
       "Model provided is schema version %d not equal "
