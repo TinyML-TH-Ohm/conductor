@@ -103,8 +103,8 @@ alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 const tflite::Model *model = nullptr;
 tflite::MicroInterpreter *interpreter = nullptr;
 
-constexpr int label_count = 2;
-const char *labels[label_count] = { "0", "1" };
+constexpr int label_count = 8;
+const char *labels[label_count] = { "0", "1", "2", "3", "4", "5", "6", "7" };
 
 void SetupIMU() {
   // Make sure we are pulling measurements into a FIFO.
@@ -692,7 +692,7 @@ void loop() {
     if (central && central.connected()) {
       prediction_buffer[0] = static_cast<int8_t>(max_index);
       prediction_buffer[1] = static_cast<int8_t>(max_score_int);
-      predictionCharacteristic.writeValue(prediction_buffer, sizeof (prediction_buffer));
+      predictionCharacteristic.writeValue(prediction_buffer, sizeof(prediction_buffer));
     }
   }
 }
