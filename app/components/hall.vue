@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { State } from '~~/shared/types'
+
 const props = defineProps<{
-  indexes: Set<number>
+  state: State
 }>()
 
 const cells = ref<{
@@ -79,10 +81,10 @@ onMounted(() => {
     >
       <g
         class="group stroke-2 stroke-(--ui-border)"
-        :data-cello="props.indexes.has(0)"
-        :data-viola="props.indexes.has(1)"
-        :data-violin1="props.indexes.has(2)"
-        :data-violin2="props.indexes.has(3)"
+        :data-cello="props.state.instruments.cello.running"
+        :data-viola="props.state.instruments.viola.running"
+        :data-violin1="props.state.instruments.violin1.running"
+        :data-violin2="props.state.instruments.violin2.running"
       >
         <path
           v-for="cell in cells"
@@ -91,7 +93,17 @@ onMounted(() => {
           :data-type="cell.type"
           :d="cell.d"
           style="vector-effect: non-scaling-stroke"
-          class="transition-colors duration-500 fill-transparent data-[type=cello]:fill-info/10 data-[type=cello]:stroke-info/10 data-[type=cello]:group-data-[cello=true]:fill-info data-[type=cello]:group-data-[cello=true]:stroke-info-600 data-[type=cello]:group-data-[cello=true]:stroke-2 data-[type=viola]:fill-error/10 data-[type=viola]:stroke-error/10 data-[type=viola]:group-data-[viola=true]:fill-error data-[type=viola]:group-data-[viola=true]:stroke-error-600 data-[type=viola]:group-data-[viola=true]:stroke-2 data-[type=violin1]:fill-success/10 data-[type=violin1]:stroke-success/10 data-[type=violin1]:group-data-[violin1=true]:fill-success data-[type=violin1]:group-data-[violin1=true]:stroke-success-600 data-[type=violin1]:group-data-[violin1=true]:stroke-2 data-[type=violin2]:fill-warning/10 data-[type=violin2]:stroke-warning/10 data-[type=violin2]:group-data-[violin2=true]:fill-warning data-[type=violin2]:group-data-[violin2=true]:stroke-warning-600 data-[type=violin2]:group-data-[violin2=true]:stroke-2"
+          class="transition-colors duration-500 fill-transparent"
+          :class="[
+            // eslint-disable-next-line vue/prefer-separate-static-class
+            'data-[type=cello]:fill-info/15 data-[type=cello]:stroke-info/15 data-[type=cello]:group-data-[cello=true]:fill-info data-[type=cello]:group-data-[cello=true]:stroke-info-600 data-[type=cello]:group-data-[cello=true]:stroke-2',
+            // eslint-disable-next-line vue/prefer-separate-static-class
+            'data-[type=viola]:fill-error/15 data-[type=viola]:stroke-error/15 data-[type=viola]:group-data-[viola=true]:fill-error data-[type=viola]:group-data-[viola=true]:stroke-error-600 data-[type=viola]:group-data-[viola=true]:stroke-2',
+            // eslint-disable-next-line vue/prefer-separate-static-class
+            'data-[type=violin1]:fill-success/15 data-[type=violin1]:stroke-success/15 data-[type=violin1]:group-data-[violin1=true]:fill-success data-[type=violin1]:group-data-[violin1=true]:stroke-success-600 data-[type=violin1]:group-data-[violin1=true]:stroke-2',
+            // eslint-disable-next-line vue/prefer-separate-static-class
+            'data-[type=violin2]:fill-warning/15 data-[type=violin2]:stroke-warning/15 data-[type=violin2]:group-data-[violin2=true]:fill-warning data-[type=violin2]:group-data-[violin2=true]:stroke-warning-600 data-[type=violin2]:group-data-[violin2=true]:stroke-2',
+          ]"
         />
       </g>
 
@@ -106,16 +118,16 @@ onMounted(() => {
       </g>
 
       <g
-        class="group text-[0.3rem]"
-        :data-cello="props.indexes.has(0)"
-        :data-viola="props.indexes.has(1)"
-        :data-violin1="props.indexes.has(2)"
-        :data-violin2="props.indexes.has(3)"
+        class="group text-[0.3rem] font-bold"
+        :data-cello="props.state.instruments.cello.running"
+        :data-viola="props.state.instruments.viola.running"
+        :data-violin1="props.state.instruments.violin1.running"
+        :data-violin2="props.state.instruments.violin2.running"
       >
         <text
           x="205"
           y="74"
-          class="fill-info/50 group-data-[cello=true]:fill-info-800"
+          class="fill-info/50 group-data-[cello=true]:fill-info-900"
           transform="rotate(68 205 74)"
         >
           Cello
@@ -133,7 +145,7 @@ onMounted(() => {
         <text
           x="116"
           y="52"
-          class="fill-success/50 group-data-[violin1=true]:fill-success-800"
+          class="fill-success/50 group-data-[violin1=true]:fill-success-900"
           transform="rotate(-23 116 52)"
         >
           Violin 2
@@ -142,7 +154,7 @@ onMounted(() => {
         <text
           x="87"
           y="90"
-          class="fill-warning/50 group-data-[violin2=true]:fill-warning-800"
+          class="fill-warning/50 group-data-[violin2=true]:fill-warning-900"
           transform="rotate(-70 87 90)"
         >
           Violin 1
@@ -150,6 +162,6 @@ onMounted(() => {
       </g>
     </svg>
 
-    <OrchestraAudio :indexes="props.indexes" />
+    <HallAudio :state="props.state" />
   </div>
 </template>

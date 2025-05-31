@@ -1,26 +1,23 @@
 <script setup lang="ts">
-import type { Features, Point } from '~~/shared/types'
-import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, SERVICE_UUID } from '~~/shared/constants'
+import type { Command, Features, Point, State } from '~~/shared/types'
+import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, LABELS, SERVICE_UUID } from '~~/shared/constants'
 
 const props = defineProps<{
-  prediction: string | undefined
-  connected: boolean
+  state: State
 }>()
 
 const emit = defineEmits<{
-  predict: [v: { index: number, label: string, score: number }]
+  predict: [v: { command: Command, score: number }]
   connect: []
 }>()
 
 const MAX_RECORDS = 128
 const STROKE_POINT_COUNT = 160
-const State = {
+const STATE = {
   WAITING: 0,
   DRAWING: 1,
   DONE: 2,
 } as const
-
-const LABELS = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']
 
 const STRUCTURE_MAP = {
   Int32: { fn: DataView.prototype.getInt32, bytes: 4 },
@@ -65,7 +62,7 @@ function onUpdateStroke() {
   const length = data.lengths.at(-1)!
   const points = data.points.at(-1)!.slice(0, length)
 
-  if ((state === State.DONE) && (features.stroke.previousState !== State.DONE)) {
+  if ((state === STATE.DONE) && (features.stroke.previousState !== STATE.DONE)) {
     // TODO saved points
   }
   features.stroke.previousState = state
@@ -85,7 +82,7 @@ function onUpdateStroke() {
   ctx.fillStyle = bgClr
   ctx.fillRect(0, 0, width, height)
 
-  if (state === State.DRAWING) {
+  if (state === STATE.DRAWING) {
     ctx.strokeStyle = textClr
     ctx.beginPath()
     for (let i = 0; i < length; ++i) {
@@ -107,10 +104,10 @@ function onUpdateStroke() {
 
 function onUpdatePrediction() {
   const index = features.prediction.data.index ?? -1
-  const label = LABELS[index]
+  const command = LABELS[index as keyof typeof LABELS]
   const score = features.prediction.data.score ?? 0
 
-  emit('predict', { index, label, score })
+  emit('predict', { command, score })
 }
 
 async function onDisconnect() {
@@ -234,23 +231,16 @@ onUnmounted(() => onDisconnect)
     </p>
 
     <div
-      v-if="props.connected"
-      class="card absolute top-0 right-0 text-xl size-12 flex-center"
-    >
-      {{ props.prediction }}
-    </div>
-
-    <div
-      v-else
+      v-if="!props.state.connected"
       class="absolute z-10 inset-0 size-full flex-center"
     >
       <UButton
         size="lg"
-        :disabled="props.connected"
+        :disabled="props.state.connected"
         variant="soft"
         @click="connect"
       >
-        {{ props.connected ? 'Connected' : 'Connect' }}
+        {{ props.state.connected ? 'Connected' : 'Connect' }}
       </UButton>
     </div>
 
@@ -258,6 +248,7 @@ onUnmounted(() => onDisconnect)
       ref="canvas"
       width="300"
       height="300"
+      class="mx-auto"
     />
   </div>
 </template>

@@ -1,37 +1,85 @@
 <script setup lang="ts">
+import type { Command, State } from '~~/shared/types'
 import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, SERVICE_UUID } from '~~/shared/constants'
 
-const logs = ref<{
-  indexes: Set<number>
-  index: number | undefined
-  prediction: string | undefined
-  score: number
-  connected: boolean
-}>({
-  indexes: new Set(),
-  index: undefined,
-  prediction: undefined,
-  score: 0,
+const state = ref<State>({
   connected: false,
+  last: {
+    command: undefined,
+    score: 0,
+  },
+  instrument: undefined,
+  time: 0,
+  instruments: {
+    cello: {
+      running: false,
+      time: 0,
+      volume: 100,
+    },
+    violin1: {
+      running: false,
+      time: 0,
+      volume: 100,
+    },
+    violin2: {
+      running: false,
+      time: 0,
+      volume: 100,
+    },
+    viola: {
+      running: false,
+      time: 0,
+      volume: 100,
+    },
+  },
 })
 
-function onPredict(v: { index: number, label: string, score: number }) {
-  logs.value.index = v.index
-  logs.value.prediction = v.label
-  logs.value.score = v.score
+function onPredict(v: { command: Command, score: number }) {
+  const instruments = state.value.instruments
 
-  if (v.score < 50)
-    return
+  switch (v.command) {
+    case 'on':{
+      if (state.value.instrument) {
+        instruments[state.value.instrument].running = true
+      }
+      break
+    }
 
-  if (![0, 1, 2, 3].includes(v.index))
-    return
+    case 'off': {
+      if (state.value.instrument) {
+        instruments[state.value.instrument].running = false
+      }
+      break
+    }
 
-  if (logs.value.indexes.has(v.index)) {
-    logs.value.indexes.delete(v.index)
-    return
+    case 'volume down':{
+      if (state.value.instrument) {
+        const volume = instruments[state.value.instrument].volume
+        instruments[state.value.instrument].volume = Math.max(0, volume - 25)
+      }
+      break
+    }
+
+    case 'volume up':{
+      if (state.value.instrument) {
+        const volume = instruments[state.value.instrument].volume
+        instruments[state.value.instrument].volume = Math.max(0, volume + 25)
+      }
+      break
+    }
+
+    case 'cello':
+    case 'viola':
+    case 'violin1':
+    case 'violin2':
+    {
+      state.value.instruments[v.command].running = true
+      state.value.instrument = v.command
+      break
+    }
   }
 
-  logs.value.indexes.add(v.index)
+  state.value.last = v
 }
 
 const cm = useColorMode()
@@ -49,7 +97,7 @@ const cm = useColorMode()
           icon="i-lucide:github"
           variant="soft"
           size="sm"
-          to="https://github.com/chubetho/Orchestra_Conductor"
+          to="https://github.com/TinyML-TH-Ohm/conductor"
           target="_blank"
         />
 
@@ -64,52 +112,88 @@ const cm = useColorMode()
 
     <div class="card p-4 relative max-h-[600px]">
       <p class="font-extrabold">
-        Orchestra:
+        Hall:
       </p>
-      <Orchestra
-        :indexes="logs.indexes"
-        class=""
-      />
+      <Hall :state="state" />
 
       <UBadge
         class="absolute top-4 right-4 font-semibold rounded-full"
-        :color="logs.connected ? 'success' : 'error'"
+        :color="state.connected ? 'success' : 'error'"
         variant="soft"
       >
-        {{ logs.connected ? 'connected' : 'disconnected' }}
+        {{ state.connected ? 'connected' : 'disconnected' }}
       </UBadge>
     </div>
 
-    <div class="grid grid-cols-3 gap-4">
+    <div class="grid grid-cols-2 gap-4">
       <div class="card p-4">
         <DrawCanvas
-          :connected="logs.connected"
-          :prediction="logs.prediction"
-          @connect="logs.connected = true"
+          :state="state"
+          @connect="state.connected = true"
           @predict="onPredict"
         />
       </div>
 
       <div class="card p-4 flex flex-col gap-4">
         <p class="font-extrabold">
-          Logs:
+          State:
         </p>
-        <div>
-          <p>- Indexes: <span class="text-info">{{ Array.from(logs.indexes) }}</span></p>
-          <p>- Index: <span class="text-info">{{ logs.index }}</span></p>
-          <p>- Prediction: <span class="text-info">{{ logs.prediction }}</span></p>
-          <p>
-            - Score:
-            <span
-              :class="logs.score > 80 ? 'text-success' : logs.score > 50 ? 'text-warning' : 'text-error' "
-            >
-              {{ logs.score }}%
-            </span>
-          </p>
+
+        <div class="text-sm flex gap-1">
+          <span class="text-dimmed">Last command:</span>
+          <span>{{ state.last.command }}</span>
+          <span class="text-dimmed">| {{ state.last.score }}%</span>
+        </div>
+
+        <div class="grid gap-1.5">
+          <span class="text-sm text-dimmed">Instruments:</span>
+          <table class="rounded ring ring-muted">
+            <thead class="border-b border-muted">
+              <tr class="*:py-1 *:px-2">
+                <th class="text-left">
+                  type
+                </th>
+                <th class="text-center">
+                  time
+                </th>
+                <th class="text-center">
+                  volume
+                </th>
+                <th class="text-right">
+                  running
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                v-for="[k, v] in Object.entries(state.instruments)"
+                :key="k"
+                class="*:py-1 *:px-2"
+                :class="{ 'text-success': state.instrument === k }"
+              >
+                <td class="text-left">
+                  {{ k }}
+                </td>
+                <td class="text-center">
+                  {{ v.time }}s
+                </td>
+                <td class="text-center">
+                  {{ v.volume }}%
+                </td>
+                <td
+                  class="group flex justify-end items-center"
+                  :data-running="v.running"
+                >
+                  &nbsp;
+                  <div class="rounded-full size-2 transition-colors bg-error group-data-[running=true]:bg-success mr-[3ch]" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
-      <div class="card p-4 flex flex-col gap-4 text-sm">
+      <div class="card p-4 flex flex-col gap-4 text-xs">
         <p class="font-extrabold text-base">
           Info:
         </p>
@@ -124,12 +208,6 @@ const cm = useColorMode()
         <div class="grid gap-1">
           <span class="text-dimmed">Prediction UUID: </span>
           <span>{{ BLE_PREDICTION_UUID }}</span>
-        </div>
-        <div class="grid gap-1">
-          <span class="text-dimmed">Note: </span>
-          <span class="text-warning">
-            - Only 0 (cello), 1 (viola), 2 (violin 1) or 3 (violin 2) are supported.
-          </span>
         </div>
       </div>
     </div>

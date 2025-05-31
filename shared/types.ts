@@ -1,3 +1,5 @@
+import type { LABELS } from './constants'
+
 export interface Point {
   x: number
   y: number
@@ -26,5 +28,30 @@ export interface Features {
     }
     characteristic: BluetoothRemoteGATTCharacteristic | undefined
     onUpdate: () => void
+  }
+}
+
+export type Command = typeof LABELS[keyof typeof LABELS]
+export type InstrumentCommand = keyof State['instruments']
+
+interface StateInstrument {
+  running: boolean
+  time: number
+  volume: number
+}
+
+export interface State {
+  connected: boolean
+  last: {
+    command: Command | undefined
+    score: number
+  }
+  instrument: InstrumentCommand | undefined
+  time: number
+  instruments: {
+    cello: StateInstrument
+    violin1: StateInstrument
+    violin2: StateInstrument
+    viola: StateInstrument
   }
 }
