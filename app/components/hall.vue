@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import type { State } from '~~/shared/types'
 
-const props = defineProps<{
-  state: State
-}>()
+const state = useState<State>('state')
 
 const cells = ref<{
   id: string
@@ -49,11 +47,11 @@ function draw() {
         }
 
         if ([1, 2, 3].includes(i) && [6, 7, 8].includes(j)) {
-          return 'violin1'
+          return 'violin2'
         }
 
         if ([1, 2].includes(i) && [9, 10, 11].includes(j)) {
-          return 'violin2'
+          return 'violin1'
         }
       })()
 
@@ -81,10 +79,10 @@ onMounted(() => {
     >
       <g
         class="group stroke-2 stroke-(--ui-border)"
-        :data-cello="props.state.instruments.cello.running"
-        :data-viola="props.state.instruments.viola.running"
-        :data-violin1="props.state.instruments.violin1.running"
-        :data-violin2="props.state.instruments.violin2.running"
+        :data-cello="state.instruments.cello.playing"
+        :data-viola="state.instruments.viola.playing"
+        :data-violin2="state.instruments.violin2.playing"
+        :data-violin1="state.instruments.violin1.playing"
       >
         <path
           v-for="cell in cells"
@@ -100,9 +98,9 @@ onMounted(() => {
             // eslint-disable-next-line vue/prefer-separate-static-class
             'data-[type=viola]:fill-error/15 data-[type=viola]:stroke-error/15 data-[type=viola]:group-data-[viola=true]:fill-error data-[type=viola]:group-data-[viola=true]:stroke-error-600 data-[type=viola]:group-data-[viola=true]:stroke-2',
             // eslint-disable-next-line vue/prefer-separate-static-class
-            'data-[type=violin1]:fill-success/15 data-[type=violin1]:stroke-success/15 data-[type=violin1]:group-data-[violin1=true]:fill-success data-[type=violin1]:group-data-[violin1=true]:stroke-success-600 data-[type=violin1]:group-data-[violin1=true]:stroke-2',
+            'data-[type=violin2]:fill-success/15 data-[type=violin2]:stroke-success/15 data-[type=violin2]:group-data-[violin2=true]:fill-success data-[type=violin2]:group-data-[violin2=true]:stroke-success-600 data-[type=violin2]:group-data-[violin2=true]:stroke-2',
             // eslint-disable-next-line vue/prefer-separate-static-class
-            'data-[type=violin2]:fill-warning/15 data-[type=violin2]:stroke-warning/15 data-[type=violin2]:group-data-[violin2=true]:fill-warning data-[type=violin2]:group-data-[violin2=true]:stroke-warning-600 data-[type=violin2]:group-data-[violin2=true]:stroke-2',
+            'data-[type=violin1]:fill-warning/15 data-[type=violin1]:stroke-warning/15 data-[type=violin1]:group-data-[violin1=true]:fill-warning data-[type=violin1]:group-data-[violin1=true]:stroke-warning-600 data-[type=violin1]:group-data-[violin1=true]:stroke-2',
           ]"
         />
       </g>
@@ -119,10 +117,10 @@ onMounted(() => {
 
       <g
         class="group text-[0.3rem] font-bold"
-        :data-cello="props.state.instruments.cello.running"
-        :data-viola="props.state.instruments.viola.running"
-        :data-violin1="props.state.instruments.violin1.running"
-        :data-violin2="props.state.instruments.violin2.running"
+        :data-cello="state.instruments.cello.playing"
+        :data-viola="state.instruments.viola.playing"
+        :data-violin2="state.instruments.violin2.playing"
+        :data-violin1="state.instruments.violin1.playing"
       >
         <text
           x="205"
@@ -145,7 +143,7 @@ onMounted(() => {
         <text
           x="116"
           y="52"
-          class="fill-success/50 group-data-[violin1=true]:fill-success-900"
+          class="fill-success/50 group-data-[violin2=true]:fill-success-900"
           transform="rotate(-23 116 52)"
         >
           Violin 2
@@ -154,7 +152,7 @@ onMounted(() => {
         <text
           x="87"
           y="90"
-          class="fill-warning/50 group-data-[violin2=true]:fill-warning-900"
+          class="fill-warning/50 group-data-[violin1=true]:fill-warning-900"
           transform="rotate(-70 87 90)"
         >
           Violin 1
@@ -162,6 +160,6 @@ onMounted(() => {
       </g>
     </svg>
 
-    <HallAudio :state="props.state" />
+    <HallAudio />
   </div>
 </template>

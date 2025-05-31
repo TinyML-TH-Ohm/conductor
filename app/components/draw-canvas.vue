@@ -2,14 +2,11 @@
 import type { Command, Features, Point, State } from '~~/shared/types'
 import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, LABELS, SERVICE_UUID } from '~~/shared/constants'
 
-const props = defineProps<{
-  state: State
-}>()
-
 const emit = defineEmits<{
   predict: [v: { command: Command, score: number }]
-  connect: []
 }>()
+
+const state = useState<State>('state')
 
 const MAX_RECORDS = 128
 const STROKE_POINT_COUNT = 160
@@ -133,7 +130,7 @@ async function connect() {
   if (!device.gatt)
     return
 
-  emit('connect')
+  state.value.connected = true
 
   device.addEventListener('gattserverdisconnected', onDisconnect)
 
@@ -231,16 +228,16 @@ onUnmounted(() => onDisconnect)
     </p>
 
     <div
-      v-if="!props.state.connected"
+      v-if="!state.connected"
       class="absolute z-10 inset-0 size-full flex-center"
     >
       <UButton
         size="lg"
-        :disabled="props.state.connected"
+        :disabled="state.connected"
         variant="soft"
         @click="connect"
       >
-        {{ props.state.connected ? 'Connected' : 'Connect' }}
+        {{ state.connected ? 'Connected' : 'Connect' }}
       </UButton>
     </div>
 

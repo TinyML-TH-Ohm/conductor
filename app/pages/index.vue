@@ -2,7 +2,7 @@
 import type { Command, State } from '~~/shared/types'
 import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, SERVICE_UUID } from '~~/shared/constants'
 
-const state = ref<State>({
+const state = useState<State>('state', () => ({
   connected: false,
   last: {
     command: undefined,
@@ -12,27 +12,23 @@ const state = ref<State>({
   time: 0,
   instruments: {
     cello: {
-      running: false,
-      time: 0,
+      playing: false,
       volume: 100,
     },
     violin1: {
-      running: false,
-      time: 0,
+      playing: false,
       volume: 100,
     },
     violin2: {
-      running: false,
-      time: 0,
+      playing: false,
       volume: 100,
     },
     viola: {
-      running: false,
-      time: 0,
+      playing: false,
       volume: 100,
     },
   },
-})
+}))
 
 function onPredict(v: { command: Command, score: number }) {
   const instruments = state.value.instruments
@@ -40,14 +36,14 @@ function onPredict(v: { command: Command, score: number }) {
   switch (v.command) {
     case 'on':{
       if (state.value.instrument) {
-        instruments[state.value.instrument].running = true
+        instruments[state.value.instrument].playing = true
       }
       break
     }
 
     case 'off': {
       if (state.value.instrument) {
-        instruments[state.value.instrument].running = false
+        instruments[state.value.instrument].playing = false
       }
       break
     }
@@ -73,7 +69,7 @@ function onPredict(v: { command: Command, score: number }) {
     case 'violin1':
     case 'violin2':
     {
-      state.value.instruments[v.command].running = true
+      state.value.instruments[v.command].playing = true
       state.value.instrument = v.command
       break
     }
@@ -114,7 +110,7 @@ const cm = useColorMode()
       <p class="font-extrabold">
         Hall:
       </p>
-      <Hall :state="state" />
+      <Hall />
 
       <UBadge
         class="absolute top-4 right-4 font-semibold rounded-full"
@@ -128,8 +124,6 @@ const cm = useColorMode()
     <div class="grid grid-cols-2 gap-4">
       <div class="card p-4">
         <DrawCanvas
-          :state="state"
-          @connect="state.connected = true"
           @predict="onPredict"
         />
       </div>
@@ -154,13 +148,10 @@ const cm = useColorMode()
                   type
                 </th>
                 <th class="text-center">
-                  time
-                </th>
-                <th class="text-center">
                   volume
                 </th>
                 <th class="text-right">
-                  running
+                  playing
                 </th>
               </tr>
             </thead>
@@ -175,17 +166,14 @@ const cm = useColorMode()
                   {{ k }}
                 </td>
                 <td class="text-center">
-                  {{ v.time }}s
-                </td>
-                <td class="text-center">
                   {{ v.volume }}%
                 </td>
                 <td
                   class="group flex justify-end items-center"
-                  :data-running="v.running"
+                  :data-playing="v.playing"
                 >
                   &nbsp;
-                  <div class="rounded-full size-2 transition-colors bg-error group-data-[running=true]:bg-success mr-[3ch]" />
+                  <div class="rounded-full size-2 transition-colors bg-error group-data-[playing=true]:bg-success mr-[3ch]" />
                 </td>
               </tr>
             </tbody>
