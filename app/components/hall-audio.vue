@@ -5,10 +5,10 @@ import { Howl } from 'howler'
 const state = useState<State>('state')
 const keys: Instrument[] = ['cello', 'viola', 'violin2', 'violin1']
 const audios: Record<Instrument, Howl> = {
-  cello: new Howl({ src: '/audios/cello.opus' }),
-  viola: new Howl({ src: '/audios/viola.opus' }),
-  violin2: new Howl({ src: '/audios/violin2.opus' }),
-  violin1: new Howl({ src: '/audios/violin1.opus' }),
+  cello: new Howl({ src: 'cello.opus' }),
+  viola: new Howl({ src: 'viola.opus' }),
+  violin2: new Howl({ src: 'violin2.opus' }),
+  violin1: new Howl({ src: 'violin1.opus' }),
 }
 
 const { pause: pauseFn, resume: resumeFn } = useIntervalFn(() => {
