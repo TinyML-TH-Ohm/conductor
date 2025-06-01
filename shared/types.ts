@@ -35,8 +35,9 @@ export type Command = typeof LABELS[keyof typeof LABELS]
 export type Instrument = keyof State['instruments']
 
 interface StateInstrument {
-  playing: boolean
   volume: number
+  speed: number
+  playing: boolean
 }
 
 export interface State {

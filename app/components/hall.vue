@@ -134,7 +134,7 @@ onMounted(() => {
         <text
           x="167"
           y="44"
-          class="fill-error/60 group-data-[viola=true]:fill-error-600"
+          class="fill-error/50 group-data-[viola=true]:fill-error-700"
           transform="rotate(24 167 44)"
         >
           Viola

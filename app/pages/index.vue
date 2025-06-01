@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Command, State } from '~~/shared/types'
-import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, SERVICE_UUID } from '~~/shared/constants'
+import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, LABELS, SERVICE_UUID } from '~~/shared/constants'
 
 const state = useState<State>('state', () => ({
   connected: false,
@@ -12,23 +12,30 @@ const state = useState<State>('state', () => ({
   time: 0,
   instruments: {
     cello: {
-      playing: false,
       volume: 100,
+      speed: 1.0,
+      playing: false,
     },
     violin1: {
-      playing: false,
       volume: 100,
+      speed: 1.0,
+      playing: false,
     },
     violin2: {
-      playing: false,
       volume: 100,
+      speed: 1.0,
+      playing: false,
     },
     viola: {
-      playing: false,
       volume: 100,
+      speed: 1.0,
+      playing: false,
     },
   },
 }))
+
+const keys = Object.values(LABELS)
+const key = shallowRef<typeof keys[number]>()
 
 function onPredict(v: { command: Command, score: number }) {
   const instruments = state.value.instruments
@@ -44,7 +51,18 @@ function onPredict(v: { command: Command, score: number }) {
     case 'off': {
       if (state.value.instrument) {
         instruments[state.value.instrument].playing = false
+        state.value.instrument = undefined
       }
+      break
+    }
+
+    case 'cello':
+    case 'viola':
+    case 'violin1':
+    case 'violin2':
+    {
+      state.value.instrument = v.command
+      state.value.instruments[v.command].playing = true
       break
     }
 
@@ -59,18 +77,24 @@ function onPredict(v: { command: Command, score: number }) {
     case 'volume up':{
       if (state.value.instrument) {
         const volume = instruments[state.value.instrument].volume
-        instruments[state.value.instrument].volume = Math.max(0, volume + 25)
+        instruments[state.value.instrument].volume = Math.min(100, volume + 25)
       }
       break
     }
 
-    case 'cello':
-    case 'viola':
-    case 'violin1':
-    case 'violin2':
-    {
-      state.value.instruments[v.command].playing = true
-      state.value.instrument = v.command
+    case 'speed down':{
+      if (state.value.instrument) {
+        const speed = instruments[state.value.instrument].speed
+        instruments[state.value.instrument].speed = Math.max(0.25, speed - 0.25)
+      }
+      break
+    }
+
+    case 'speed up':{
+      if (state.value.instrument) {
+        const speed = instruments[state.value.instrument].speed
+        instruments[state.value.instrument].speed = Math.min(2.0, speed + 0.25)
+      }
       break
     }
   }
@@ -123,9 +147,7 @@ const cm = useColorMode()
 
     <div class="grid grid-cols-2 gap-4">
       <div class="card p-4">
-        <DrawCanvas
-          @predict="onPredict"
-        />
+        <DrawCanvas @predict="onPredict" />
       </div>
 
       <div class="card p-4 flex flex-col gap-4">
@@ -141,7 +163,7 @@ const cm = useColorMode()
 
         <div class="grid gap-1.5">
           <span class="text-sm text-dimmed">Instruments:</span>
-          <table class="rounded ring ring-muted">
+          <table class="rounded ring ring-muted text-sm">
             <thead class="border-b border-muted">
               <tr class="*:py-1 *:px-2">
                 <th class="text-left">
@@ -149,6 +171,9 @@ const cm = useColorMode()
                 </th>
                 <th class="text-center">
                   volume
+                </th>
+                <th class="text-center">
+                  speed
                 </th>
                 <th class="text-right">
                   playing
@@ -168,6 +193,9 @@ const cm = useColorMode()
                 <td class="text-center">
                   {{ v.volume }}%
                 </td>
+                <td class="text-center">
+                  {{ v.speed.toFixed(2) }}x
+                </td>
                 <td
                   class="group flex justify-end items-center"
                   :data-playing="v.playing"
@@ -178,6 +206,25 @@ const cm = useColorMode()
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div class="grid gap-1.5">
+          <span class="text-sm text-dimmed">DEV:</span>
+
+          <div class="flex items-center gap-4">
+            <USelect
+              v-model="key"
+              :items="keys"
+              size="sm"
+              placeholder="Select command"
+              class="grow"
+              @blur="key ? onPredict({ command: key, score: 100 }) : undefined"
+            />
+
+            <span class="text-sm">
+              {{ state.time.toFixed(2) }}s
+            </span>
+          </div>
         </div>
       </div>
 

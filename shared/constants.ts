@@ -11,4 +11,6 @@ export const LABELS = {
   5: 'viola',
   6: 'volume down',
   7: 'volume up',
+  8: 'speed down',
+  9: 'speed up',
 } as const
