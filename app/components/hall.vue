@@ -106,11 +106,24 @@ onMounted(() => {
       </g>
 
       <g>
+        <template v-if="state.drawing">
+          <line
+            :x1="startX" :y1="startY - 5" :x2="startX" :y2="startY - 15"
+            class="stroke-1 stroke-[#9775fa] origin-bottom animate-swing-left"
+          />
+
+          <line
+            :x1="startX" :y1="startY - 5" :x2="startX" :y2="startY - 15"
+            class="stroke-1 stroke-[#9775fa] origin-bottom animate-swing-right"
+          />
+        </template>
+
         <circle
           :cx="startX"
-          :cy="startY - 4"
-          r="3"
-          class="stroke-1 stroke-(--ui-text) fill-transparent"
+          :cy="startY"
+          r="4"
+          class="fill-transparent stroke-2 transition-[transform,stroke] duration-300 ease-in-out"
+          :class=" state.drawing ? 'stroke-(--ui-text) translate-y-[1px]' : 'stroke-(--ui-border) translate-y-[-2px]'"
           style="vector-effect: non-scaling-stroke"
         />
       </g>

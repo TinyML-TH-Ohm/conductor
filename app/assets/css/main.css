@@ -21,3 +21,29 @@
 @utility flex-center {
   @apply flex items-center justify-center;
 }
+
+@theme {
+  --ease-custom: cubic-bezier(0.645, 0.045, 0.355, 1);
+  --animate-swing-left: swing-left 3s var(--ease-custom) infinite;
+  --animate-swing-right: swing-right 3s var(--ease-custom) infinite;
+
+  @keyframes swing-left {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(-60deg);
+    }
+  }
+
+  @keyframes swing-right {
+    0%,
+    100% {
+      transform: rotate(0deg);
+    }
+    50% {
+      transform: rotate(60deg);
+    }
+  }
+}

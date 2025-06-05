@@ -43,6 +43,7 @@ interface StateInstrument {
 
 export interface State {
   connected: boolean
+  drawing: boolean
   last: {
     command: Command | undefined
     score: number

@@ -55,14 +55,14 @@ const features: Features = {
 
 function onUpdateStroke() {
   const data = features.stroke.data
-  const state = data.states.at(-1)!
+  const _state = data.states.at(-1)!
   const length = data.lengths.at(-1)!
   const points = data.points.at(-1)!.slice(0, length)
 
-  if ((state === STATE.DONE) && (features.stroke.previousState !== STATE.DONE)) {
-    // TODO saved points
+  if ((_state === STATE.DONE) && (features.stroke.previousState !== STATE.DONE)) {
+    state.value.drawing = false
   }
-  features.stroke.previousState = state
+  features.stroke.previousState = _state
 
   const canvas = canvasEl.value!
   const ctx = canvas.getContext('2d')!
@@ -79,7 +79,8 @@ function onUpdateStroke() {
   ctx.fillStyle = bgClr
   ctx.fillRect(0, 0, width, height)
 
-  if (state === STATE.DRAWING) {
+  if (_state === STATE.DRAWING) {
+    state.value.drawing = true
     ctx.strokeStyle = textClr
     ctx.beginPath()
     for (let i = 0; i < length; ++i) {
@@ -117,8 +118,9 @@ async function onDisconnect() {
 
   // Prediction
   if (features.prediction.characteristic) {
-    await features.prediction.characteristic.stopNotifications()
+    await features.prediction.characteristic?.stopNotifications()
     features.prediction.characteristic = undefined
+    state.value.connected = false
   }
 }
 
@@ -148,7 +150,12 @@ async function connect() {
         if (features.stroke.isReading)
           return
 
-        const data = await features.stroke.characteristic?.readValue()
+        let data: DataView | undefined
+        try {
+          data = await features.stroke.characteristic?.readValue()
+        }
+        catch {}
+
         if (!data)
           return
 

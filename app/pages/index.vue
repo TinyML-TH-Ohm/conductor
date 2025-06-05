@@ -4,6 +4,7 @@ import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, LABELS, SERVICE_UUID } from '~~/s
 
 const state = useState<State>('state', () => ({
   connected: false,
+  drawing: false,
   last: {
     command: undefined,
     score: 0,
@@ -131,6 +132,10 @@ const cm = useColorMode()
       <h1 class="text-2xl flex justify-between">
         <UIcon name="i-lucide:chef-hat" class="text-success size-7" /><span>rchestra Conductor</span>
       </h1>
+
+      <UButton @click="state.drawing = !state.drawing">
+        toggle
+      </UButton>
 
       <div class="flex gap-2">
         <UButton
