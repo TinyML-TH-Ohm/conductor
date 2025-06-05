@@ -133,10 +133,6 @@ const cm = useColorMode()
         <UIcon name="i-lucide:chef-hat" class="text-success size-7" /><span>rchestra Conductor</span>
       </h1>
 
-      <UButton @click="state.drawing = !state.drawing">
-        toggle
-      </UButton>
-
       <div class="flex gap-2">
         <UButton
           icon="i-lucide:github"
