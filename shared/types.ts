@@ -37,6 +37,7 @@ export type Instrument = keyof State['instruments']
 interface StateInstrument {
   volume: number
   speed: number
+  stereo: number
   playing: boolean
 }
 

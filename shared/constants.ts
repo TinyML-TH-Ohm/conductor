@@ -13,4 +13,6 @@ export const LABELS = {
   7: 'volume up',
   8: 'speed down',
   9: 'speed up',
+  10: 'stereo left',
+  11: 'stereo right',
 } as const

@@ -14,21 +14,25 @@ const state = useState<State>('state', () => ({
     cello: {
       volume: 100,
       speed: 1.0,
+      stereo: 0.0,
       playing: false,
     },
     violin1: {
       volume: 100,
       speed: 1.0,
+      stereo: 0.0,
       playing: false,
     },
     violin2: {
       volume: 100,
       speed: 1.0,
+      stereo: 0.0,
       playing: false,
     },
     viola: {
       volume: 100,
       speed: 1.0,
+      stereo: 0.0,
       playing: false,
     },
   },
@@ -69,7 +73,7 @@ function onPredict(v: { command: Command, score: number }) {
     case 'volume down':{
       if (state.value.instrument) {
         const volume = instruments[state.value.instrument].volume
-        instruments[state.value.instrument].volume = Math.max(0, volume - 25)
+        instruments[state.value.instrument].volume = Math.max(0, volume - 50)
       }
       break
     }
@@ -77,7 +81,7 @@ function onPredict(v: { command: Command, score: number }) {
     case 'volume up':{
       if (state.value.instrument) {
         const volume = instruments[state.value.instrument].volume
-        instruments[state.value.instrument].volume = Math.min(100, volume + 25)
+        instruments[state.value.instrument].volume = Math.min(100, volume + 50)
       }
       break
     }
@@ -94,6 +98,22 @@ function onPredict(v: { command: Command, score: number }) {
       if (state.value.instrument) {
         const speed = instruments[state.value.instrument].speed
         instruments[state.value.instrument].speed = Math.min(2.0, speed + 0.25)
+      }
+      break
+    }
+
+    case 'stereo left':{
+      if (state.value.instrument) {
+        const stereo = instruments[state.value.instrument].stereo
+        instruments[state.value.instrument].stereo = Math.max(-1.0, stereo - 0.5)
+      }
+      break
+    }
+
+    case 'stereo right':{
+      if (state.value.instrument) {
+        const stereo = instruments[state.value.instrument].stereo
+        instruments[state.value.instrument].stereo = Math.min(1.0, stereo + 0.5)
       }
       break
     }
@@ -175,6 +195,9 @@ const cm = useColorMode()
                 <th class="text-center">
                   speed
                 </th>
+                <th class="text-center">
+                  stereo
+                </th>
                 <th class="text-right">
                   playing
                 </th>
@@ -195,6 +218,9 @@ const cm = useColorMode()
                 </td>
                 <td class="text-center">
                   {{ v.speed.toFixed(2) }}x
+                </td>
+                <td class="text-center">
+                  {{ v.stereo.toFixed(2) }}
                 </td>
                 <td
                   class="group flex justify-end items-center"
@@ -230,7 +256,7 @@ const cm = useColorMode()
 
       <div class="card p-4 flex flex-col gap-4 text-xs">
         <p class="font-extrabold text-base">
-          Info:
+          Arduino:
         </p>
         <div class="grid gap-1">
           <span class="text-dimmed">Service UUID: </span>
@@ -243,6 +269,17 @@ const cm = useColorMode()
         <div class="grid gap-1">
           <span class="text-dimmed">Prediction UUID: </span>
           <span>{{ BLE_PREDICTION_UUID }}</span>
+        </div>
+      </div>
+
+      <div class="card p-4 flex flex-col gap-4 text-xs">
+        <p class="font-extrabold text-base">
+          Notes:
+        </p>
+        <div class="grid gap-1">
+          <span class="text-dimmed">WIP: </span>
+          <span>- speed</span>
+          <span>- stereo</span>
         </div>
       </div>
     </div>

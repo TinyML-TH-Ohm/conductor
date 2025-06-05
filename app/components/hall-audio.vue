@@ -50,6 +50,7 @@ watch(() => state.value.instruments, (s) => {
     if (audios[k].playing()) {
       audios[k].volume(s[k].volume / 100)
       audios[k].rate(s[k].speed)
+      audios[k].stereo(s[k].stereo)
     }
   }
 }, { deep: true, flush: 'post' })
