@@ -1,43 +1,9 @@
 <script setup lang="ts">
-import type { Command, State } from '~~/shared/types'
+import type { Command } from '~~/shared/types'
 import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, LABELS, SERVICE_UUID } from '~~/shared/constants'
 
-const state = useState<State>('state', () => ({
-  connected: false,
-  drawing: false,
-  last: {
-    command: undefined,
-    score: 0,
-  },
-  instrument: undefined,
-  time: 0,
-  instruments: {
-    cello: {
-      volume: 100,
-      speed: 1.0,
-      stereo: 0.0,
-      playing: false,
-    },
-    violin1: {
-      volume: 100,
-      speed: 1.0,
-      stereo: 0.0,
-      playing: false,
-    },
-    violin2: {
-      volume: 100,
-      speed: 1.0,
-      stereo: 0.0,
-      playing: false,
-    },
-    viola: {
-      volume: 100,
-      speed: 1.0,
-      stereo: 0.0,
-      playing: false,
-    },
-  },
-}))
+const state = useAppState()
+const muted = useState('app-muted', () => false)
 
 const keys = Object.values(LABELS)
 const key = shallowRef<typeof keys[number]>()
@@ -172,9 +138,31 @@ const cm = useColorMode()
       </div>
 
       <div class="card p-4 flex flex-col gap-4">
-        <p class="font-extrabold">
-          State:
-        </p>
+        <div class="flex justify-between items-center">
+          <p class="font-extrabold">
+            State:
+          </p>
+
+          <div class="flex items-center gap-2">
+            <UButton
+              :icon="muted ? `i-lucide-volume-off` : `i-lucide-volume-2`"
+              square
+              color="warning"
+              :variant="muted ? 'solid' : 'subtle'"
+              size="sm"
+              @click="muted = !muted"
+            />
+
+            <UButton
+              icon="i-lucide-rotate-ccw"
+              square
+              color="error"
+              variant="subtle"
+              size="sm"
+              @click="state = undefined as any"
+            />
+          </div>
+        </div>
 
         <div class="text-sm flex gap-1">
           <span class="text-dimmed">Last command:</span>

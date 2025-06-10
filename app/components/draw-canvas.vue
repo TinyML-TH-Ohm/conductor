@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { Command, Features, Point, State } from '~~/shared/types'
+import type { Command, Features, Point } from '~~/shared/types'
 import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, LABELS, SERVICE_UUID } from '~~/shared/constants'
 
 const emit = defineEmits<{
   predict: [v: { command: Command, score: number }]
 }>()
 
-const state = useState<State>('state')
+const state = useAppState()
 
 const MAX_RECORDS = 128
 const STROKE_POINT_COUNT = 160

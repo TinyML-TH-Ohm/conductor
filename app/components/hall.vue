@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import type { State } from '~~/shared/types'
-
-const state = useState<State>('state')
+const state = useAppState()
+const muted = useState('app-muted', () => false)
 
 const cells = ref<{
   id: string
@@ -76,6 +75,8 @@ onMounted(() => {
       height="100%"
       :viewBox="`0 0 ${width} ${height}`"
       xmlns="http://www.w3.org/2000/svg"
+      class="transition-opacity"
+      :class="{ 'opacity-20': muted }"
     >
       <g
         class="group stroke-2 stroke-(--ui-border)"
@@ -173,6 +174,6 @@ onMounted(() => {
       </g>
     </svg>
 
-    <HallAudio />
+    <HallAudio v-if="muted" />
   </div>
 </template>

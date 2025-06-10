@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { Instrument, State } from '~~/shared/types'
+import type { Instrument } from '~~/shared/types'
 import { Howl } from 'howler'
 
-const state = useState<State>('state')
+const state = useAppState()
+
 const keys: Instrument[] = ['cello', 'viola', 'violin2', 'violin1']
 const audios: Record<Instrument, Howl> = {
   cello: new Howl({ src: 'cello.opus' }),
