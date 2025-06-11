@@ -9,6 +9,21 @@ export default defineNuxtConfig({
   devtools: {
     enabled: false,
   },
+  app: {
+    head: {
+      title: 'Orchestra Conductor',
+      meta: [
+        { charset: 'utf-8' },
+        { name: 'viewport', content: 'width=device-width, initial-scale=1' },
+      ],
+      link: [
+        { rel: 'icon', href: '/favicon.ico' },
+      ],
+      htmlAttrs: {
+        lang: 'en',
+      },
+    },
+  },
   css: ['~/assets/css/main.css'],
   future: {
     compatibilityVersion: 4,
