@@ -32,7 +32,7 @@ export interface Features {
 }
 
 export type Command = typeof LABELS[keyof typeof LABELS]
-export type Instrument = keyof State['instruments']
+export type Instrument = keyof SyncState['instruments']
 
 interface StateInstrument {
   volume: number
@@ -41,14 +41,7 @@ interface StateInstrument {
   playing: boolean
 }
 
-export interface State {
-  connected: boolean
-  drawing: boolean
-  last: {
-    command: Command | undefined
-    score: number
-  }
-  instrument: Instrument | undefined
+export interface SyncState {
   time: number
   instruments: {
     cello: StateInstrument
@@ -56,4 +49,15 @@ export interface State {
     violin2: StateInstrument
     viola: StateInstrument
   }
+}
+
+export interface LocalState {
+  connected: boolean
+  drawing: boolean
+  muted: boolean
+  last: {
+    command: Command | undefined
+    score: number
+  }
+  instrument: Instrument | undefined
 }

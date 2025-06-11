@@ -1,6 +1,6 @@
 <script setup lang="ts">
-const state = useAppState()
-const muted = useState('app-muted', () => false)
+const { state: localState } = useLocalState()
+const { state: syncState } = useSyncState()
 
 const cells = ref<{
   id: string
@@ -76,14 +76,14 @@ onMounted(() => {
       :viewBox="`0 0 ${width} ${height}`"
       xmlns="http://www.w3.org/2000/svg"
       class="transition-opacity"
-      :class="{ 'opacity-20': muted }"
+      :class="{ 'opacity-50 dark:opacity-30': localState.muted }"
     >
       <g
         class="group stroke-2 stroke-(--ui-border)"
-        :data-cello="state.instruments.cello.playing"
-        :data-viola="state.instruments.viola.playing"
-        :data-violin2="state.instruments.violin2.playing"
-        :data-violin1="state.instruments.violin1.playing"
+        :data-cello="syncState.instruments.cello.playing"
+        :data-viola="syncState.instruments.viola.playing"
+        :data-violin2="syncState.instruments.violin2.playing"
+        :data-violin1="syncState.instruments.violin1.playing"
       >
         <path
           v-for="cell in cells"
@@ -107,7 +107,7 @@ onMounted(() => {
       </g>
 
       <g>
-        <template v-if="state.drawing">
+        <template v-if="localState.drawing">
           <line
             :x1="startX" :y1="startY - 5" :x2="startX" :y2="startY - 15"
             class="stroke-1 stroke-[#9775fa] origin-bottom animate-swing-left"
@@ -124,17 +124,17 @@ onMounted(() => {
           :cy="startY"
           r="4"
           class="fill-transparent stroke-2 transition-[transform,stroke] duration-300 ease-in-out"
-          :class=" state.drawing ? 'stroke-(--ui-text) translate-y-[1px]' : 'stroke-(--ui-border) translate-y-[-2px]'"
+          :class=" localState.drawing ? 'stroke-(--ui-text) translate-y-[1px]' : 'stroke-(--ui-border) translate-y-[-2px]'"
           style="vector-effect: non-scaling-stroke"
         />
       </g>
 
       <g
         class="group text-[0.3rem] font-bold"
-        :data-cello="state.instruments.cello.playing"
-        :data-viola="state.instruments.viola.playing"
-        :data-violin2="state.instruments.violin2.playing"
-        :data-violin1="state.instruments.violin1.playing"
+        :data-cello="syncState.instruments.cello.playing"
+        :data-viola="syncState.instruments.viola.playing"
+        :data-violin2="syncState.instruments.violin2.playing"
+        :data-violin1="syncState.instruments.violin1.playing"
       >
         <text
           x="205"
@@ -174,6 +174,6 @@ onMounted(() => {
       </g>
     </svg>
 
-    <HallAudio v-if="muted" />
+    <HallAudio v-if="!localState.muted" />
   </div>
 </template>

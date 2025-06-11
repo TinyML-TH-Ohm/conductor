@@ -2,27 +2,27 @@
 import type { Command } from '~~/shared/types'
 import { BLE_PREDICTION_UUID, BLE_STROKE_UUID, LABELS, SERVICE_UUID } from '~~/shared/constants'
 
-const state = useAppState()
-const muted = useState('app-muted', () => false)
+const { state: localState, reset: resetLocalState } = useLocalState()
+const { state: syncState, reset: resetSyncState } = useSyncState()
 
 const keys = Object.values(LABELS)
 const key = shallowRef<typeof keys[number]>()
 
 function onPredict(v: { command: Command, score: number }) {
-  const instruments = state.value.instruments
+  const instruments = syncState.value.instruments
 
   switch (v.command) {
     case 'on':{
-      if (state.value.instrument) {
-        instruments[state.value.instrument].playing = true
+      if (localState.value.instrument) {
+        instruments[localState.value.instrument].playing = true
       }
       break
     }
 
     case 'off': {
-      if (state.value.instrument) {
-        instruments[state.value.instrument].playing = false
-        state.value.instrument = undefined
+      if (localState.value.instrument) {
+        instruments[localState.value.instrument].playing = false
+        localState.value.instrument = undefined
       }
       break
     }
@@ -32,64 +32,69 @@ function onPredict(v: { command: Command, score: number }) {
     case 'violin1':
     case 'violin2':
     {
-      state.value.instrument = v.command
-      state.value.instruments[v.command].playing = true
+      localState.value.instrument = v.command
+      syncState.value.instruments[v.command].playing = true
       break
     }
 
     case 'volume down':{
-      if (state.value.instrument) {
-        const volume = instruments[state.value.instrument].volume
-        instruments[state.value.instrument].volume = Math.max(0, volume - 50)
+      if (localState.value.instrument) {
+        const volume = instruments[localState.value.instrument].volume
+        instruments[localState.value.instrument].volume = Math.max(0, volume - 50)
       }
       break
     }
 
     case 'volume up':{
-      if (state.value.instrument) {
-        const volume = instruments[state.value.instrument].volume
-        instruments[state.value.instrument].volume = Math.min(100, volume + 50)
+      if (localState.value.instrument) {
+        const volume = instruments[localState.value.instrument].volume
+        instruments[localState.value.instrument].volume = Math.min(100, volume + 50)
       }
       break
     }
 
     case 'speed down':{
-      if (state.value.instrument) {
-        const speed = instruments[state.value.instrument].speed
-        instruments[state.value.instrument].speed = Math.max(0.25, speed - 0.25)
+      if (localState.value.instrument) {
+        const speed = instruments[localState.value.instrument].speed
+        instruments[localState.value.instrument].speed = Math.max(0.25, speed - 0.25)
       }
       break
     }
 
     case 'speed up':{
-      if (state.value.instrument) {
-        const speed = instruments[state.value.instrument].speed
-        instruments[state.value.instrument].speed = Math.min(2.0, speed + 0.25)
+      if (localState.value.instrument) {
+        const speed = instruments[localState.value.instrument].speed
+        instruments[localState.value.instrument].speed = Math.min(2.0, speed + 0.25)
       }
       break
     }
 
     case 'stereo left':{
-      if (state.value.instrument) {
-        const stereo = instruments[state.value.instrument].stereo
-        instruments[state.value.instrument].stereo = Math.max(-1.0, stereo - 0.5)
+      if (localState.value.instrument) {
+        const stereo = instruments[localState.value.instrument].stereo
+        instruments[localState.value.instrument].stereo = Math.max(-1.0, stereo - 0.5)
       }
       break
     }
 
     case 'stereo right':{
-      if (state.value.instrument) {
-        const stereo = instruments[state.value.instrument].stereo
-        instruments[state.value.instrument].stereo = Math.min(1.0, stereo + 0.5)
+      if (localState.value.instrument) {
+        const stereo = instruments[localState.value.instrument].stereo
+        instruments[localState.value.instrument].stereo = Math.min(1.0, stereo + 0.5)
       }
       break
     }
   }
 
-  state.value.last = v
+  localState.value.last = v
 }
 
 const cm = useColorMode()
+
+function reset() {
+  resetLocalState()
+  resetSyncState()
+}
 </script>
 
 <template>
@@ -125,10 +130,10 @@ const cm = useColorMode()
 
       <UBadge
         class="absolute top-4 right-4 font-semibold rounded-full"
-        :color="state.connected ? 'success' : 'error'"
+        :color="localState.connected ? 'success' : 'error'"
         variant="soft"
       >
-        {{ state.connected ? 'connected' : 'disconnected' }}
+        {{ localState.connected ? 'connected' : 'disconnected' }}
       </UBadge>
     </div>
 
@@ -145,12 +150,12 @@ const cm = useColorMode()
 
           <div class="flex items-center gap-2">
             <UButton
-              :icon="muted ? `i-lucide-volume-off` : `i-lucide-volume-2`"
+              :icon="localState.muted ? `i-lucide-volume-off` : `i-lucide-volume-2`"
               square
               color="warning"
-              :variant="muted ? 'solid' : 'subtle'"
+              :variant="localState.muted ? 'solid' : 'subtle'"
               size="sm"
-              @click="muted = !muted"
+              @click="localState.muted = !localState.muted"
             />
 
             <UButton
@@ -159,15 +164,15 @@ const cm = useColorMode()
               color="error"
               variant="subtle"
               size="sm"
-              @click="state = undefined as any"
+              @click="reset"
             />
           </div>
         </div>
 
         <div class="text-sm flex gap-1">
           <span class="text-dimmed">Last command:</span>
-          <span>{{ state.last.command }}</span>
-          <span class="text-dimmed">| {{ state.last.score }}%</span>
+          <span>{{ localState.last.command }}</span>
+          <span class="text-dimmed">| {{ localState.last.score }}%</span>
         </div>
 
         <div class="grid gap-1.5">
@@ -194,10 +199,10 @@ const cm = useColorMode()
             </thead>
             <tbody>
               <tr
-                v-for="[k, v] in Object.entries(state.instruments)"
+                v-for="[k, v] in Object.entries(syncState.instruments)"
                 :key="k"
                 class="*:py-1 *:px-2"
-                :class="{ 'text-success': state.instrument === k }"
+                :class="{ 'text-success': localState.instrument === k }"
               >
                 <td class="text-left">
                   {{ k }}
@@ -237,7 +242,7 @@ const cm = useColorMode()
             />
 
             <span class="text-sm">
-              {{ state.time.toFixed(2) }}s
+              {{ syncState.time.toFixed(2) }}s
             </span>
           </div>
         </div>

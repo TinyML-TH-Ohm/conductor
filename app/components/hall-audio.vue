@@ -2,7 +2,7 @@
 import type { Instrument } from '~~/shared/types'
 import { Howl } from 'howler'
 
-const state = useAppState()
+const { state: syncState } = useSyncState()
 
 const keys: Instrument[] = ['cello', 'viola', 'violin2', 'violin1']
 const audios: Record<Instrument, Howl> = {
@@ -15,7 +15,7 @@ const audios: Record<Instrument, Howl> = {
 const { pause: pauseFn, resume: resumeFn } = useIntervalFn(() => {
   const max = Math.max(...keys.flatMap(k => audios[k].playing() ? [audios[k].seek()] : []))
   if (Number.isFinite(max)) {
-    state.value.time = max
+    syncState.value.time = max
   }
 }, 10, { immediate: false })
 
@@ -23,7 +23,7 @@ function play(instrument: Instrument) {
   resumeFn()
 
   const audio = audios[instrument]
-  audio.seek(state.value.time)
+  audio.seek(syncState.value.time)
 
   audio.play()
 }
@@ -37,8 +37,7 @@ function pause(instrument: Instrument) {
   }
 }
 
-watch(() => state.value.instruments, (s) => {
-  console.log('[Watch]')
+watch(() => syncState.value.instruments, (s) => {
   for (const k of keys) {
     if (s[k].playing && !audios[k].playing()) {
       play(k)
@@ -55,6 +54,13 @@ watch(() => state.value.instruments, (s) => {
     }
   }
 }, { deep: true, flush: 'post' })
+
+onUnmounted(() => {
+  for (const k of keys) {
+    audios[k].stop()
+    audios[k].unload()
+  }
+})
 </script>
 
 <template>

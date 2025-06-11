@@ -6,7 +6,7 @@ const emit = defineEmits<{
   predict: [v: { command: Command, score: number }]
 }>()
 
-const state = useAppState()
+const localState = useLocalState()
 
 const MAX_RECORDS = 128
 const STROKE_POINT_COUNT = 160
@@ -60,7 +60,7 @@ function onUpdateStroke() {
   const points = data.points.at(-1)!.slice(0, length)
 
   if ((_state === STATE.DONE) && (features.stroke.previousState !== STATE.DONE)) {
-    state.value.drawing = false
+    localState.value.drawing = false
   }
   features.stroke.previousState = _state
 
@@ -80,7 +80,7 @@ function onUpdateStroke() {
   ctx.fillRect(0, 0, width, height)
 
   if (_state === STATE.DRAWING) {
-    state.value.drawing = true
+    localState.value.drawing = true
     ctx.strokeStyle = textClr
     ctx.beginPath()
     for (let i = 0; i < length; ++i) {
@@ -120,7 +120,7 @@ async function onDisconnect() {
   if (features.prediction.characteristic) {
     await features.prediction.characteristic?.stopNotifications()
     features.prediction.characteristic = undefined
-    state.value.connected = false
+    localState.value.connected = false
   }
 }
 
@@ -132,7 +132,7 @@ async function connect() {
   if (!device.gatt)
     return
 
-  state.value.connected = true
+  localState.value.connected = true
 
   device.addEventListener('gattserverdisconnected', onDisconnect)
 
@@ -235,16 +235,16 @@ onUnmounted(() => onDisconnect)
     </p>
 
     <div
-      v-if="!state.connected"
+      v-if="!localState.connected"
       class="absolute z-10 inset-0 size-full flex-center"
     >
       <UButton
         size="lg"
-        :disabled="state.connected"
+        :disabled="localState.connected"
         variant="soft"
         @click="connect"
       >
-        {{ state.connected ? 'Connected' : 'Connect' }}
+        {{ localState.connected ? 'Connected' : 'Connect' }}
       </UButton>
     </div>
 
