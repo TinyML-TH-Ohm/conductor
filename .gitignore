@@ -25,6 +25,9 @@ logs
 
 .venv
 
-python/*
-!python/data
-!python/*.ipynb
+python_command/*
+python_instrument/*
+!python_command/data
+!python_command/*.ipynb
+!python_instrument/data
+!python_instrument/*.ipynb
