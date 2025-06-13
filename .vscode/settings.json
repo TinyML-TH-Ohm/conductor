@@ -44,5 +44,19 @@
   ],
   "interline-translate.knownPopularWordCount": 6000,
   "iconify.annotations": true,
-  "iconify.inplace": true
+  "iconify.inplace": true,
+
+  "[python]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.codeActionsOnSave": {
+      "source.fixAll": "explicit",
+      "source.organizeImports": "explicit"
+    }
+  },
+  "notebook.formatOnSave.enabled": true,
+  "notebook.codeActionsOnSave": {
+    "notebook.source.fixAll": "explicit",
+    "source.organizeImports": "explicit"
+  }
 }
