@@ -40,6 +40,9 @@
     "pre-commit": "npx nano-staged"
   },
   "nano-staged": {
-    "*": "npx eslint . --fix"
+    "*.{js,jsx,ts,tsx}": [
+      "npx eslint --fix",
+      "git add"
+    ]
   }
 }

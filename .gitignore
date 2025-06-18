@@ -23,6 +23,7 @@ logs
 .env.*
 !.env.example
 
+venv
 .venv
 
 python_command/*
