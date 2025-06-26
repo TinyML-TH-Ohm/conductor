@@ -3,6 +3,7 @@ import type { LocalState, SyncState } from '~~/shared/types'
 export function useSyncState() {
   const _default: SyncState = {
     time: 0,
+    instrument: undefined,
     instruments: {
       cello: {
         volume: 100,
@@ -42,6 +43,7 @@ export function useSyncState() {
 
 export function useLocalState() {
   const _default: LocalState = {
+    name: undefined,
     type: undefined,
     uuids: undefined,
     connected: false,
@@ -51,7 +53,6 @@ export function useLocalState() {
       command: undefined,
       score: 0,
     },
-    instrument: undefined,
   }
 
   const state = useState(

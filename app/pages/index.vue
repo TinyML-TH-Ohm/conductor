@@ -18,19 +18,26 @@ const key = shallowRef<typeof keys[number]>()
 
 function onPredict(v: { command: Command, score: number }) {
   const instruments = syncState.value.instruments
+  const type = localState.value.type
 
   switch (v.command) {
     case 'on':{
-      if (localState.value.instrument) {
-        instruments[localState.value.instrument].playing = true
+      if (type === 'instrument')
+        return
+
+      if (syncState.value.instrument) {
+        instruments[syncState.value.instrument].playing = true
       }
       break
     }
 
     case 'off': {
-      if (localState.value.instrument) {
-        instruments[localState.value.instrument].playing = false
-        localState.value.instrument = undefined
+      if (type === 'instrument')
+        break
+
+      if (syncState.value.instrument) {
+        instruments[syncState.value.instrument].playing = false
+        syncState.value.instrument = undefined
       }
       break
     }
@@ -40,39 +47,54 @@ function onPredict(v: { command: Command, score: number }) {
     case 'violin1':
     case 'violin2':
     {
-      localState.value.instrument = v.command
+      if (type === 'command')
+        break
+
+      syncState.value.instrument = v.command
       syncState.value.instruments[v.command].playing = true
       break
     }
 
     case 'volume down':{
-      if (localState.value.instrument) {
-        const volume = instruments[localState.value.instrument].volume
-        instruments[localState.value.instrument].volume = Math.max(0, volume - 50)
+      if (type === 'instrument')
+        break
+
+      if (syncState.value.instrument) {
+        const volume = instruments[syncState.value.instrument].volume
+        instruments[syncState.value.instrument].volume = Math.max(0, volume - 50)
       }
       break
     }
 
     case 'volume up':{
-      if (localState.value.instrument) {
-        const volume = instruments[localState.value.instrument].volume
-        instruments[localState.value.instrument].volume = Math.min(100, volume + 50)
+      if (type === 'instrument')
+        break
+
+      if (syncState.value.instrument) {
+        const volume = instruments[syncState.value.instrument].volume
+        instruments[syncState.value.instrument].volume = Math.min(100, volume + 50)
       }
       break
     }
 
     case 'speed down':{
-      if (localState.value.instrument) {
-        const speed = instruments[localState.value.instrument].speed
-        instruments[localState.value.instrument].speed = Math.max(0.25, speed - 0.25)
+      if (type === 'instrument')
+        break
+
+      if (syncState.value.instrument) {
+        const speed = instruments[syncState.value.instrument].speed
+        instruments[syncState.value.instrument].speed = Math.max(0.25, speed - 0.25)
       }
       break
     }
 
     case 'speed up':{
-      if (localState.value.instrument) {
-        const speed = instruments[localState.value.instrument].speed
-        instruments[localState.value.instrument].speed = Math.min(2.0, speed + 0.25)
+      if (type === 'instrument')
+        break
+
+      if (syncState.value.instrument) {
+        const speed = instruments[syncState.value.instrument].speed
+        instruments[syncState.value.instrument].speed = Math.min(2.0, speed + 0.25)
       }
       break
     }
@@ -85,10 +107,18 @@ const cm = useColorMode()
 const drawCanvas = useTemplateRef('draw-canvas')
 
 function reset() {
-  drawCanvas.value?.disconnect()
-  resetLocalState()
-  resetSyncState()
+  let i = 0
+  const interval = setInterval(() => {
+    drawCanvas.value?.disconnect()
+    resetLocalState()
+    resetSyncState()
+    i++
+    if (i === 5)
+      clearInterval(interval)
+  }, 500)
 }
+
+onMounted(reset)
 </script>
 
 <template>
@@ -201,7 +231,7 @@ function reset() {
                 v-for="[k, v] in Object.entries(syncState.instruments)"
                 :key="k"
                 class="*:py-1 *:px-2"
-                :class="{ 'text-success': localState.instrument === k }"
+                :class="{ 'text-success': syncState.instrument === k }"
               >
                 <td class="text-left">
                   {{ k }}

@@ -42,6 +42,7 @@ interface StateInstrument {
 
 export interface SyncState {
   time: number
+  instrument: Instrument | undefined
   instruments: {
     cello: StateInstrument
     violin1: StateInstrument
@@ -51,6 +52,7 @@ export interface SyncState {
 }
 
 export interface LocalState {
+  name: string | undefined
   type: 'instrument' | 'command' | undefined
   uuids: {
     service: string
@@ -64,5 +66,4 @@ export interface LocalState {
     command: Command | undefined
     score: number
   }
-  instrument: Instrument | undefined
 }

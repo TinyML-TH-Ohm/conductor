@@ -61,6 +61,55 @@ const features: Features = {
   },
 }
 
+const commandPoints = useLocalStorage<Point[]>('command_points', () => [], { deep: false })
+const instrumentPoints = useLocalStorage<Point[]>('instrument_points', () => [], { deep: false })
+
+watchEffect(() => {
+  const canvas = canvasEl.value!
+  const ctx = canvas.getContext('2d')!
+
+  const halfWidth = canvas.width / 2
+  const halfHeight = canvas.height / 2
+
+  const type = localState.value.type
+
+  ctx.strokeStyle = '#f00'
+  ctx.beginPath()
+  if (type === 'command') {
+    for (let i = 0; i < instrumentPoints.value.length; i++) {
+      const x = instrumentPoints.value[i].x
+      const y = instrumentPoints.value[i].y
+      const xCanvas = halfWidth + (x * halfWidth)
+      const yCanvas = halfHeight - (y * halfHeight)
+
+      if (i === 0) {
+        ctx.moveTo(xCanvas, yCanvas)
+        continue
+      }
+
+      ctx.lineTo(xCanvas, yCanvas)
+    }
+    instrumentPoints.value = []
+  }
+  else if (type === 'instrument') {
+    for (let i = 0; i < commandPoints.value.length; i++) {
+      const x = commandPoints.value[i].x
+      const y = commandPoints.value[i].y
+      const xCanvas = halfWidth + (x * halfWidth)
+      const yCanvas = halfHeight - (y * halfHeight)
+
+      if (i === 0) {
+        ctx.moveTo(xCanvas, yCanvas)
+        continue
+      }
+
+      ctx.lineTo(xCanvas, yCanvas)
+    }
+    commandPoints.value = []
+    ctx.stroke()
+  }
+}, { flush: 'post' })
+
 function onUpdateStroke() {
   const data = features.stroke.data
   const _state = data.states.at(-1)!
@@ -89,9 +138,18 @@ function onUpdateStroke() {
 
   if (_state === STATE.DRAWING) {
     localState.value.drawing = true
+
+    const type = localState.value.type
+    if (type === 'command') {
+      commandPoints.value = points.slice(0, length)
+    }
+    else if (type === 'instrument') {
+      instrumentPoints.value = points.slice(0, length)
+    }
+
     ctx.strokeStyle = textClr
     ctx.beginPath()
-    for (let i = 0; i < length; ++i) {
+    for (let i = 0; i < length; i++) {
       const x = points[i].x
       const y = points[i].y
       const xCanvas = halfWidth + (x * halfWidth)
@@ -144,8 +202,6 @@ async function connect() {
   if (!device.gatt)
     return
 
-  localState.value.connected = true
-
   device.addEventListener('gattserverdisconnected', onDisconnect)
 
   await device.gatt.connect()
@@ -155,6 +211,19 @@ async function connect() {
   if (!service)
     return
 
+  const name = service.device.name
+  if (name) {
+    localState.value.name = name
+    const type = name.split('-')[1]
+    if (type === 'Com') {
+      localState.value.type = 'command'
+    }
+    else if (type === 'Ins') {
+      localState.value.type = 'instrument'
+    }
+  }
+
+  localState.value.connected = true
   const isInstrument = service.uuid === INSTRUMENT_SERVICE_UUID
 
   localState.value.type = isInstrument ? 'instrument' : 'command'
@@ -268,9 +337,23 @@ defineExpose({
 
 <template>
   <div class="relative">
-    <p class="font-extrabold">
-      Draw:
-    </p>
+    <div class="flex justify-between items-start">
+      <p class="font-extrabold">
+        Draw:
+      </p>
+
+      <div v-if="localState.connected" class="grid gap-1">
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-0.5 bg-(--ui-text)" />
+          <span class="text-xs text-muted">{{ localState.name }}</span>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span class="w-8 h-0.5 bg-[#f00]" />
+          <span class="text-xs text-muted">{{ localState.type === 'command' ? 'TinyML-Ins' : localState.type === 'instrument' ? 'TinyML-Com' : '' }}</span>
+        </div>
+      </div>
+    </div>
 
     <div
       v-if="!localState.connected"
