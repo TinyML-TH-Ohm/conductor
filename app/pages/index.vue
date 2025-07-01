@@ -137,6 +137,28 @@ onMounted(reset)
       </h1>
 
       <div class="flex gap-2">
+        <UPopover>
+          <UButton
+            icon="i-lucide:circle-question-mark"
+            variant="soft"
+            size="sm"
+          />
+          <template #content>
+            <div class="max-w-[90vw] overflow-x-auto p-2">
+              <div class="flex gap-4">
+                <img src="public/gesture_pictures/OFF.png" alt="OFF" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/ON.png" alt="ON" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Violin1.png" alt="Violin1" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Violin2.png" alt="Violin2" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Viola.png" alt="Viola" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Cello.png" alt="Cello" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Volume_down.png" alt="Volume down" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Volume_up.png" alt="Volume up" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+              </div>
+            </div>
+          </template>
+        </UPopover>
+
         <UButton
           icon="i-lucide:github"
           variant="soft"
