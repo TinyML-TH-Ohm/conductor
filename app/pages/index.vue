@@ -16,13 +16,13 @@ const { state: syncState, reset: resetSyncState } = useSyncState()
 const keys = Object.values(LABELS)
 const key = shallowRef<typeof keys[number]>()
 
-function onPredict(v: { command: Command, score: number }) {
+function onPredict(v: { command: Command, score: number, dev: boolean }) {
   const instruments = syncState.value.instruments
   const type = localState.value.type
 
   switch (v.command) {
     case 'on':{
-      if (type === 'instrument')
+      if (!!v.dev && type === 'instrument')
         return
 
       if (syncState.value.instrument) {
@@ -32,7 +32,7 @@ function onPredict(v: { command: Command, score: number }) {
     }
 
     case 'off': {
-      if (type === 'instrument')
+      if (!!v.dev && type === 'instrument')
         break
 
       if (syncState.value.instrument) {
@@ -47,7 +47,7 @@ function onPredict(v: { command: Command, score: number }) {
     case 'violin1':
     case 'violin2':
     {
-      if (type === 'command')
+      if (!!v.dev && type === 'command')
         break
 
       syncState.value.instrument = v.command
@@ -56,7 +56,7 @@ function onPredict(v: { command: Command, score: number }) {
     }
 
     case 'volume down':{
-      if (type === 'instrument')
+      if (!!v.dev && type === 'instrument')
         break
 
       if (syncState.value.instrument) {
@@ -67,7 +67,7 @@ function onPredict(v: { command: Command, score: number }) {
     }
 
     case 'volume up':{
-      if (type === 'instrument')
+      if (!!v.dev && type === 'instrument')
         break
 
       if (syncState.value.instrument) {
@@ -78,7 +78,7 @@ function onPredict(v: { command: Command, score: number }) {
     }
 
     case 'speed down':{
-      if (type === 'instrument')
+      if (!!v.dev && type === 'instrument')
         break
 
       if (syncState.value.instrument) {
@@ -89,7 +89,7 @@ function onPredict(v: { command: Command, score: number }) {
     }
 
     case 'speed up':{
-      if (type === 'instrument')
+      if (!!v.dev && type === 'instrument')
         break
 
       if (syncState.value.instrument) {
@@ -193,7 +193,7 @@ onMounted(reset)
 
     <div class="grid grid-cols-2 gap-4">
       <div class="card p-4">
-        <DrawCanvas ref="draw-canvas" @predict="onPredict" />
+        <DrawCanvas ref="draw-canvas" @predict=" v => onPredict({ ...v, dev: false })" />
       </div>
 
       <div class="card p-4 flex flex-col gap-4">
@@ -286,7 +286,7 @@ onMounted(reset)
               size="sm"
               placeholder="Select command"
               class="grow"
-              @blur="key ? onPredict({ command: key, score: 100 }) : undefined"
+              @blur="key ? onPredict({ command: key, score: 100, dev: true }) : undefined"
             />
 
             <span class="text-sm">
