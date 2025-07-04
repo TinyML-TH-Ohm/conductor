@@ -13,10 +13,16 @@ Command your own digital orchestra, where every section listens for your cue.
 Using two Arduino Nano 33 boards, your gestures shape the music—guiding instruments, adjusting volume, and sculpting the dynamics in real time.
 All of it unfolds through a custom-built web interface, where each instrument section is brought to life before your eyes.
 
+## Table of Contents
+1. [Team](#team)
+2. [Idea](#idea)
+3. [Overview](#overview)
+4. [Setup](#setup)
+
 ## Team
 
 This project was developed as part of the TinyML course led by [Prof. Cristian Axenie](https://www.th-nuernberg.de/person/axenie-cristian/) at the Georg Simon Ohm University of Applied Sciences Nuremberg during the summer semester of 2025.
-The team behind ConductorML consists of Chris, Elli, Phat, and Robin (Volle Namen und Matrikelnummer hier noch?)— united by a shared passion for music, technology, and creative experimentation.
+The team behind ConductorML consists of Elli, Chris, Phat and Robin (Volle Namen und Matrikelnummer/th email hier noch?)— united by a shared passion for music, technology, and creative experimentation.
 
 ## Idea
 
@@ -28,29 +34,47 @@ Instead of using raw accelerometer and gyroscope data directly for gesture class
 These 2D images are then classified into gesture categories by a small convolutional neural network, implemented using TensorFlow Lite for Microcontrollers. The model runs directly on the Arduino Nano 33 BLE’s onboard neural processing unit, enabling efficient, real-time inference on embedded hardware.
 The classification result is transmitted to a central computer and displayed in a custom-built web interface. This interface not only visualizes the recognized gestures but also maps them to playback triggers and volume changes for different sections of the digital orchestra—enabling intuitive, real-time control through gesture alone.
 
+## Overview
 
-# Conductor
+The following sections are organized to provide a clear overview of all the moving parts that make up our application:
 
-Conductor is a web application enabling users to control sound parameters via gestures detected by an Arduino Nano 33 BLE Sense. It utilizes Bluetooth Low Energy (BLE) for wireless communication between the Arduino and the web interface, providing an intuitive sound control experience for future conductors.
+1. [Models](#models)
+
+    This section explains how our gesture classification models were developed—from the initial data collection and preprocessing steps to model architecture and training. It provides insight into the process of transforming raw IMU data into effective, deployable models.
+
+2.  [Arduino Sketch](#arduino)
+
+    Here we detail how the trained models are deployed on the Arduino Nano 33 BLE using TensorFlow Lite for Microcontrollers. You'll find information on real-time inference, onboard data preprocessing, and the Bluetooth communication setup used to transmit predictions and stroke data.
+
+3.  [Frontend](#frontend)
+
+    This part covers the code powering the web interface that brings everything together. It receives gesture classifications and stroke data via Bluetooth, maps them to musical actions, and controls both the audio playback and visual feedback of the digital orchestra.
+
+## Models
+
+
+
+## Arduino 
+
+## Frontend
 
 ![Conductor Web Interface](./preview.png 'Conductor Web Interface')
 
-## Features
 
-- Gesture-based sound parameter control using an Arduino Nano 33 BLE Sense.
-- Web-based interface for sound interaction.
-- Wireless communication via Bluetooth Low Energy (BLE).
+## Setup
 
-## Technologies
+
+
+### Technologies
 
 - **Frontend:** Nuxt Framework
 - **Hardware:** Arduino Nano 33 BLE Sense
 - **Communication:** Bluetooth Low Energy (BLE)
 - **Machine Learning:** TensorFlow (for model training)
 
-## Getting Started
+### Getting Started
 
-### Prerequisites
+#### Prerequisites
 
 Ensure the following are installed:
 
@@ -59,7 +83,7 @@ Ensure the following are installed:
 - [Arduino IDE](https://www.arduino.cc/en/software)
 - [Python 3.12](https://www.python.org/downloads/)
 
-### Development Setup
+#### Development Setup
 
 **1. Clone the Repository:**
 
