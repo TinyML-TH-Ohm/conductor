@@ -193,6 +193,7 @@ async function onDisconnect() {
 async function connect() {
   const device = await navigator.bluetooth.requestDevice({
     filters: [{ namePrefix: 'TinyML' }],
+    // acceptAllDevices: true,
     optionalServices: [
       INSTRUMENT_SERVICE_UUID,
       COMMAND_SERVICE_UUID,

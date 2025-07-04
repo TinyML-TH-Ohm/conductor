@@ -51,7 +51,7 @@ function onPredict(v: { command: Command, score: number, dev: boolean }) {
         break
 
       syncState.value.instrument = v.command
-      syncState.value.instruments[v.command].playing = true
+      // syncState.value.instruments[v.command].playing = true
       break
     }
 

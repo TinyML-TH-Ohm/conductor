@@ -18,3 +18,11 @@ export const LABELS = {
   8: 'speed down',
   9: 'speed up',
 } as const
+
+export const INSTRUMENT_LABELS = {
+  0: 'cello', // |
+  1: 'viola', // --
+  2: 'viloin1', // triangle
+  3: 'violin2', // circle
+  4: 'all', // square
+} as const
