@@ -22,7 +22,13 @@ All of it unfolds through a custom-built web interface, where each instrument se
 ## Team
 
 This project was developed as part of the TinyML course led by [Prof. Cristian Axenie](https://www.th-nuernberg.de/person/axenie-cristian/) at the Georg Simon Ohm University of Applied Sciences Nuremberg during the summer semester of 2025.
-The team behind ConductorML consists of Elli, Chris, Phat and Robin (Volle Namen und Matrikelnummer/th email hier noch?)— united by a shared passion for music, technology, and creative experimentation.
+The team behind ConductorML consists of
+- Eleonora Schubert, 3296062, schubertel75720@th-nuernberg.de
+- Kristoph Kolert, 3128311, kolertkr103269@th-nuernberg.de
+- Tan Phat Nguyen, 3818565, nguyenta100556@th-nuernberg.de
+- Robin Feldmann, 3538270, feldmannro80685@th-nuernberg.de, 
+
+united by a shared passion for music, technology, and creative experimentation.
 
 ## Idea
 
@@ -52,7 +58,42 @@ The following sections are organized to provide a clear overview of all the movi
 
 ## Models
 
+Two Arduino Nano 33 BLE boards are used—one for each hand—with slightly different gesture sets. One device is responsible for instrument selection, while the other controls commands sent to the selected instrument (e.g., play, stop, volume).
+The code is organized so that all model-related logic can be found in the following directories:
 
+- [python_instrument](./python_instrument) – for the instrument-selection model
+
+- [python_command ](./python_command)– for the command/execution model
+
+
+### 1. Data Collection
+
+Data was collected using a general procedure where both Arduinos were connected via Bluetooth. Gestures were recorded using either a simple web interface or a basic Python application [to do add to repo and link here to src folder], both designed to log stroke data for training.
+Each recorded stroke consists of a sequence of points that define a gesture path, captured in normalized coordinates ranging from -1 to +1. These are later scaled and rasterized into image representations for training.
+
+The stroke data is saved as a JSON and has the following structure:
+```python
+class StrokePoint:
+    """Represents a single point in a gesture stroke.
+    Coordinates are normalized in the range [-1, 1] and must be scaled to match the resolution of the output 2D image.
+    """
+    x: float
+    y: float
+
+class Stroke:
+    """Represents a single gesture stroke.
+    The label is an integer corresponding to a specific gesture class,
+    with the exact meaning depending on whether the stroke was recorded from the left or right device.
+    """
+    index: int
+    strokePoints: list[StrokePoint]
+    label: int
+
+class StrokeData:
+    strokes: List[Stroke]
+``` 
+
+The data for the [instrument-selection model is available here](./python_instrument/data), and the data for the [command-control model can be found here](./python_command/data).
 
 ## Arduino 
 
