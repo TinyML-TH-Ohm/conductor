@@ -1,17 +1,29 @@
 <script setup lang="ts">
-import type { Command, Features, Point } from '~~/shared/types'
+import type { Command, Features, Instrument, Point } from '~~/shared/types'
 import {
   COMMAND_BLE_PREDICTION_UUID,
   COMMAND_BLE_STROKE_UUID,
+  COMMAND_LABELS,
   COMMAND_SERVICE_UUID,
   INSTRUMENT_BLE_PREDICTION_UUID,
   INSTRUMENT_BLE_STROKE_UUID,
+  INSTRUMENT_LABELS,
   INSTRUMENT_SERVICE_UUID,
-  LABELS,
 } from '~~/shared/constants'
 
 const emit = defineEmits<{
-  predict: [v: { command: Command, score: number }]
+  predict: [
+    v: ({
+      type: 'command'
+      label: Command
+    }
+    | {
+      type: 'instrument'
+      label: Instrument
+    }) & {
+      score: number
+    },
+  ]
 }>()
 
 const { state: localState } = useLocalState()
@@ -167,11 +179,20 @@ function onUpdateStroke() {
 }
 
 function onUpdatePrediction() {
-  const index = features.prediction.data.index ?? -1
-  const command = LABELS[index as keyof typeof LABELS]
-  const score = features.prediction.data.score ?? 0
+  const type = localState.value.type
+  const index = features.prediction.data.index
+  if (!type || !index)
+    return
 
-  emit('predict', { command, score })
+  const score = features.prediction.data.score ?? 0
+  if (type === 'command') {
+    const label = COMMAND_LABELS[index as keyof typeof COMMAND_LABELS]
+    emit('predict', { type, label, score })
+  }
+  else {
+    const label = INSTRUMENT_LABELS[index as keyof typeof INSTRUMENT_LABELS]
+    emit('predict', { type, label, score })
+  }
 }
 
 async function onDisconnect() {

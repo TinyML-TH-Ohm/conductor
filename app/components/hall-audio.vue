@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import type { Instrument } from '~~/shared/types'
+import type { InstrumentWithoutAll } from '~~/shared/types'
 import { Howl } from 'howler'
 
 const { state: syncState } = useSyncState()
-
-const keys: Instrument[] = ['cello', 'viola', 'violin2', 'violin1']
-const audios: Record<Instrument, Howl> = {
+const keys: InstrumentWithoutAll[] = ['cello', 'viola', 'violin2', 'violin1']
+const audios: Record<InstrumentWithoutAll, Howl> = {
   cello: new Howl({ src: 'cello.opus' }),
   viola: new Howl({ src: 'viola.opus' }),
   violin2: new Howl({ src: 'violin2.opus' }),
@@ -19,7 +18,7 @@ const { pause: pauseFn, resume: resumeFn } = useIntervalFn(() => {
   }
 }, 10, { immediate: false })
 
-function play(instrument: Instrument) {
+function play(instrument: InstrumentWithoutAll) {
   resumeFn()
 
   const audio = audios[instrument]
@@ -28,7 +27,7 @@ function play(instrument: Instrument) {
   audio.play()
 }
 
-function pause(instrument: Instrument) {
+function pause(instrument: InstrumentWithoutAll) {
   const audio = audios[instrument]
   audio.pause()
 
