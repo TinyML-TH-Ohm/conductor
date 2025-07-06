@@ -154,7 +154,7 @@ function onUpdateStroke() {
 function onUpdatePrediction() {
   const type = localState.value.type
   const index = features.prediction.data.index
-  if (!type || !index)
+  if (!type || index === undefined)
     return
 
   const score = features.prediction.data.score ?? 0

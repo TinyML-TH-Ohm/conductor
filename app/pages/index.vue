@@ -59,6 +59,14 @@ function onChangeInstruction() {
 function onPredict(v: DrawCanvasPrediction & { dev: boolean }) {
   const instruments = syncState.value.instruments
 
+  localState.value.last = {
+    label: v.label,
+    score: v.score,
+  }
+
+  if (v.score < 75)
+    return
+
   if (v.type === 'command') {
     switch (v.label) {
       case 'volume down':{
@@ -114,11 +122,6 @@ function onPredict(v: DrawCanvasPrediction & { dev: boolean }) {
         break
       }
     }
-  }
-
-  localState.value.last = {
-    label: v.label,
-    score: v.score,
   }
 }
 
