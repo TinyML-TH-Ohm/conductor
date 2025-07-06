@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import type { DropdownMenuItem } from '#ui/types'
 import type { Command, Features, Instrument, Point } from '~~/shared/types'
 import {
   COMMAND_BLE_PREDICTION_UUID,
   COMMAND_BLE_STROKE_UUID,
   COMMAND_LABELS,
+  COMMAND_POINTS_STORAGE_KEY,
   COMMAND_SERVICE_UUID,
   INSTRUMENT_BLE_PREDICTION_UUID,
   INSTRUMENT_BLE_STROKE_UUID,
   INSTRUMENT_LABELS,
+  INSTRUMENT_POINTS_STORAGE_KEY,
   INSTRUMENT_SERVICE_UUID,
 } from '~~/shared/constants'
 
@@ -73,54 +76,25 @@ const features: Features = {
   },
 }
 
-const commandPoints = useLocalStorage<Point[]>('command_points', () => [], { deep: false })
-const instrumentPoints = useLocalStorage<Point[]>('instrument_points', () => [], { deep: false })
-
-watchEffect(() => {
-  const canvas = canvasEl.value!
-  const ctx = canvas.getContext('2d')!
-
-  const halfWidth = canvas.width / 2
-  const halfHeight = canvas.height / 2
-
-  const type = localState.value.type
-
-  ctx.strokeStyle = '#f00'
-  ctx.beginPath()
-  if (type === 'command') {
-    for (let i = 0; i < instrumentPoints.value.length; i++) {
-      const x = instrumentPoints.value[i].x
-      const y = instrumentPoints.value[i].y
-      const xCanvas = halfWidth + (x * halfWidth)
-      const yCanvas = halfHeight - (y * halfHeight)
-
-      if (i === 0) {
-        ctx.moveTo(xCanvas, yCanvas)
-        continue
-      }
-
-      ctx.lineTo(xCanvas, yCanvas)
-    }
-    instrumentPoints.value = []
-  }
-  else if (type === 'instrument') {
-    for (let i = 0; i < commandPoints.value.length; i++) {
-      const x = commandPoints.value[i].x
-      const y = commandPoints.value[i].y
-      const xCanvas = halfWidth + (x * halfWidth)
-      const yCanvas = halfHeight - (y * halfHeight)
-
-      if (i === 0) {
-        ctx.moveTo(xCanvas, yCanvas)
-        continue
-      }
-
-      ctx.lineTo(xCanvas, yCanvas)
-    }
-    commandPoints.value = []
-    ctx.stroke()
-  }
-}, { flush: 'post' })
+const arbitraryName = shallowRef<string>()
+const arbitraryNames = computed<DropdownMenuItem[]>(() => [
+  {
+    label: 'TinyML-Com-XXXX',
+    onUpdateChecked(checked) {
+      arbitraryName.value = checked ? 'TinyML-Com-XXXX' : undefined
+    },
+    checked: arbitraryName.value === 'TinyML-Com-XXXX',
+    type: 'checkbox' as const,
+  },
+  {
+    label: 'TinyML-Ins-XXXX',
+    onUpdateChecked(checked) {
+      arbitraryName.value = checked ? 'TinyML-Ins-XXXX' : undefined
+    },
+    checked: arbitraryName.value === 'TinyML-Ins-XXXX',
+    type: 'checkbox' as const,
+  },
+])
 
 function onUpdateStroke() {
   const data = features.stroke.data
@@ -143,7 +117,7 @@ function onUpdateStroke() {
 
   const style = getComputedStyle(document.documentElement)
   const bgClr = style.getPropertyValue('--background-color-default')
-  const textClr = style.getPropertyValue('--ui-text')
+  const errorClr = style.getPropertyValue('--ui-error')
 
   ctx.fillStyle = bgClr
   ctx.fillRect(0, 0, width, height)
@@ -152,14 +126,13 @@ function onUpdateStroke() {
     localState.value.drawing = true
 
     const type = localState.value.type
-    if (type === 'command') {
-      commandPoints.value = points.slice(0, length)
-    }
-    else if (type === 'instrument') {
-      instrumentPoints.value = points.slice(0, length)
-    }
+    const key = type === 'command'
+      ? COMMAND_POINTS_STORAGE_KEY
+      : INSTRUMENT_POINTS_STORAGE_KEY
+    const value = JSON.stringify(points.slice(0, length))
+    localStorage.setItem(key, value)
 
-    ctx.strokeStyle = textClr
+    ctx.strokeStyle = errorClr
     ctx.beginPath()
     for (let i = 0; i < length; i++) {
       const x = points[i].x
@@ -213,11 +186,9 @@ async function onDisconnect() {
 
 async function connect() {
   const device = await navigator.bluetooth.requestDevice({
-    filters: [{ namePrefix: 'TinyML' }],
-    // acceptAllDevices: true,
-    optionalServices: [
-      INSTRUMENT_SERVICE_UUID,
-      COMMAND_SERVICE_UUID,
+    filters: [
+      { services: [COMMAND_SERVICE_UUID] },
+      { services: [INSTRUMENT_SERVICE_UUID] },
     ],
   })
 
@@ -233,17 +204,28 @@ async function connect() {
   if (!service)
     return
 
-  const name = service.device.name
-  if (name) {
-    localState.value.name = name
-    const type = name.split('-')[1]
-    if (type === 'Com') {
-      localState.value.type = 'command'
-    }
-    else if (type === 'Ins') {
-      localState.value.type = 'instrument'
-    }
+  const name = (() => {
+    const regex = /^TinyML-(?:Com|Ins)-.{4}$/
+    if (regex.test(service.device.name ?? ''))
+      return service.device.name
+    if (regex.test(arbitraryName.value ?? ''))
+      return arbitraryName.value
+  })()
+
+  if (!name)
+    return
+
+  localState.value.name = name
+  const _type = name.split('-')[1]
+  if (_type === 'Com') {
+    localState.value.type = 'command'
   }
+  else if (_type === 'Ins') {
+    localState.value.type = 'instrument'
+  }
+
+  if (!localState.value.type)
+    return
 
   localState.value.connected = true
   const isInstrument = service.uuid === INSTRUMENT_SERVICE_UUID
@@ -335,6 +317,51 @@ async function connect() {
       await features[k].characteristic.startNotifications()
     }
   }
+
+  const points = useLocalStorage<Point[]>(
+    localState.value.type === 'command'
+      ? INSTRUMENT_POINTS_STORAGE_KEY
+      : COMMAND_POINTS_STORAGE_KEY,
+    () => [],
+    {
+      deep: false,
+      shallow: true,
+    },
+  )
+
+  watchDebounced(points, () => {
+    const canvas = canvasEl.value
+    const ctx = canvas?.getContext('2d')
+    const type = localState.value.type
+
+    if (!canvas || !ctx || !type)
+      return
+
+    const halfWidth = canvas.width / 2
+    const halfHeight = canvas.height / 2
+
+    const style = getComputedStyle(document.documentElement)
+    const textClr = style.getPropertyValue('--ui-text')
+
+    ctx.strokeStyle = textClr
+    ctx.beginPath()
+    for (let i = 0; i < points.value.length; i++) {
+      const x = points.value[i].x
+      const y = points.value[i].y
+      const xCanvas = halfWidth + (x * halfWidth)
+      const yCanvas = halfHeight - (y * halfHeight)
+
+      if (i === 0) {
+        ctx.moveTo(xCanvas, yCanvas)
+        continue
+      }
+
+      ctx.lineTo(xCanvas, yCanvas)
+    }
+    ctx.stroke()
+
+    points.value = []
+  }, { debounce: 200 })
 }
 
 function getStrokePoints(dataview: DataView<ArrayBufferLike>, byteOffset: number) {
@@ -366,12 +393,12 @@ defineExpose({
 
       <div v-if="localState.connected" class="grid gap-1">
         <div class="flex items-center gap-2">
-          <span class="w-8 h-0.5 bg-(--ui-text)" />
+          <span class="w-8 h-0.5 bg-error" />
           <span class="text-xs text-muted">{{ localState.name }}</span>
         </div>
 
         <div class="flex items-center gap-2">
-          <span class="w-8 h-0.5 bg-[#f00]" />
+          <span class="w-8 h-0.5 bg-(--ui-text)" />
           <span class="text-xs text-muted">{{ localState.type === 'command' ? 'TinyML-Ins' : localState.type === 'instrument' ? 'TinyML-Com' : '' }}</span>
         </div>
       </div>
@@ -379,16 +406,28 @@ defineExpose({
 
     <div
       v-if="!localState.connected"
-      class="absolute z-10 inset-0 size-full flex-center"
+      class="absolute z-10 inset-0 size-full flex-center gap-1"
     >
       <UButton
-        size="lg"
         :disabled="localState.connected"
         variant="soft"
         @click="connect"
       >
-        {{ localState.connected ? 'Connected' : 'Connect' }}
+        Connect
       </UButton>
+      <UDropdownMenu
+        :items="arbitraryNames"
+        :content="{ align: 'start' }"
+        size="sm"
+      >
+        <UButton
+          variant="ghost"
+          trailing
+          size="lg"
+          icon="i-lucide-settings"
+          :ui="{ trailingIcon: 'size-4' }"
+        />
+      </UDropdownMenu>
     </div>
 
     <canvas

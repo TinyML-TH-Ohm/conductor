@@ -115,22 +115,21 @@ function onPredict(v: DrawCanvasPrediction & { dev: boolean }) {
       }
     }
   }
+
+  localState.value.last = {
+    label: v.label,
+    score: v.score,
+  }
 }
 
 const cm = useColorMode()
 const drawCanvas = useTemplateRef('draw-canvas')
 
 function reset() {
-  let i = 0
-  const interval = setInterval(() => {
-    drawCanvas.value?.disconnect()
-    resetLocalState()
-    resetSyncState()
-    instruction.value = undefined
-    i++
-    if (i === 5)
-      clearInterval(interval)
-  }, 500)
+  drawCanvas.value?.disconnect()
+  resetLocalState()
+  resetSyncState()
+  instruction.value = undefined
 }
 
 onMounted(reset)
@@ -217,8 +216,8 @@ onMounted(reset)
         </div>
 
         <div class="text-sm flex gap-1">
-          <span class="text-dimmed">Last command:</span>
-          <span>{{ localState.last.command }}</span>
+          <span class="text-dimmed">Last instruction:</span>
+          <span>{{ localState.last.label }}</span>
           <span class="text-dimmed">| {{ localState.last.score }}%</span>
         </div>
 

@@ -59,7 +59,7 @@ export interface LocalState {
   drawing: boolean
   muted: boolean
   last: {
-    command: Command | undefined
+    label: Command | Instrument | undefined
     score: number
   }
 }
