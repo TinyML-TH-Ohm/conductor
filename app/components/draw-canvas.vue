@@ -29,8 +29,6 @@ const emit = defineEmits<{
   ]
 }>()
 
-const { state: localState } = useLocalState()
-
 const MAX_RECORDS = 128
 const STROKE_POINT_COUNT = 160
 const STATE = {
@@ -44,6 +42,8 @@ const STRUCTURE_MAP = {
   StrokePoints: { fn: getStrokePoints, bytes: (STROKE_POINT_COUNT * 2 * 1) },
 }
 
+const toast = useToast()
+const { state: localState } = useLocalState()
 const canvasEl = useTemplateRef('canvas')
 
 const features: Features = {
@@ -85,6 +85,9 @@ const arbitraryNames = computed<DropdownMenuItem[]>(() => [
     },
     checked: arbitraryName.value === 'TinyML-Com-XXXX',
     type: 'checkbox' as const,
+    onSelect(e) {
+      e.preventDefault()
+    },
   },
   {
     label: 'TinyML-Ins-XXXX',
@@ -93,6 +96,9 @@ const arbitraryNames = computed<DropdownMenuItem[]>(() => [
     },
     checked: arbitraryName.value === 'TinyML-Ins-XXXX',
     type: 'checkbox' as const,
+    onSelect(e) {
+      e.preventDefault()
+    },
   },
 ])
 
@@ -212,8 +218,13 @@ async function connect() {
       return arbitraryName.value
   })()
 
-  if (!name)
+  if (!name) {
+    toast.add({
+      title: 'Bluetooth Name Mismatch',
+      description: 'Device name must be TinyML-XXX-XXXX. Please configure and reconnect.',
+    })
     return
+  }
 
   localState.value.name = name
   const _type = name.split('-')[1]
@@ -415,13 +426,15 @@ defineExpose({
       >
         Connect
       </UButton>
+
       <UDropdownMenu
         :items="arbitraryNames"
-        :content="{ align: 'start' }"
+        :content="{ align: 'start', side: 'right' }"
         size="sm"
+        :ui="{ content: 'w-40' }"
       >
         <UButton
-          variant="ghost"
+          :variant="arbitraryName ? 'soft' : 'ghost'"
           trailing
           size="lg"
           icon="i-lucide-settings"
