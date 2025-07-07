@@ -1,7 +1,7 @@
 
 # Conductor ML
 
-![Conductor](./conductor.png 'Conductor Image')
+![Conductor](./assets/conductor.png 'Conductor Image')
 
 The hall falls silent.
 As the curtains gently part, you step onto the podium—every eye in the room fixed on you. You bow before the audience, a gesture of grace and tradition.
@@ -94,6 +94,29 @@ class StrokeData:
 ``` 
 
 The data for the [instrument-selection model is available here](./python_instrument/data), and the data for the [command-control model can be found here](./python_command/data).
+
+The following example shows how raw gyroscope data is transformed during preprocessing.
+This entire procedure—including orientation estimation and stroke rendering—is already performed on the Arduino, enabling efficient real-time gesture classification on-device.
+
+Raw normalized data, recorded directly from the gyroscope:
+
+![Raw Gyro Data Circle](./assets/circle_sample.png)
+
+Processed stroke image, after estimating device orientation through integration and rendering the gesture path as a 64×64 raster image:
+
+![Transformed 64x64 Image](./assets/circle_stroke.png)
+
+
+### 2. Preprocessing and Data Augmentation
+
+The full data pipeline—from loading and preprocessing to training—is documented in the following Jupyter notebooks:
+
+- [Instrument Notebook](./python_instrument/train.ipynb)
+
+- [Command Notebook](./python_command/train.ipynb)
+
+Each notebook includes data loading, stroke rasterization, augmentation, model definition, training, and export to TensorFlow Lite format for deployment on the Arduino.
+
 
 ## Arduino 
 
