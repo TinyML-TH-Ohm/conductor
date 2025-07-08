@@ -216,8 +216,8 @@ Each Arduino directory includes the following key files:
 
 ### Orientation Estimation
 
-The IMU is configured in continuous mode, and gyroscope samples are buffered as they arrive.
-When the device is nearly stationary, a small batch of recent gyroscope readings is averaged to estimate and subtract sensor drift.
+The IMU is configured in continuous mode with a default sampling rate of 119 Hz, which is also used in this project.
+Gyroscope samples are buffered as they arrive. When the device is nearly stationary, a small batch of recent gyroscope readings is averaged to estimate and subtract sensor drift.
 
 Each drift-corrected angular velocity is then multiplied by the inverse of the sample rate (Δt) and cumulatively integrated to update a running orientation vector for the X, Y, and Z axes.
 This provides a simple estimate of orientation over time—sufficient for generating stroke paths—without fusing accelerometer data.
