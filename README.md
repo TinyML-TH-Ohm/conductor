@@ -117,6 +117,77 @@ The full data pipeline—from loading and preprocessing to training—is documen
 
 Each notebook includes data loading, stroke rasterization, augmentation, model definition, training, and export to TensorFlow Lite format for deployment on the Arduino.
 
+After loading the data from JSON files, each stroke is converted into a 32×32×3 image.
+This is done by mapping the normalized IMU data to 2D coordinates and drawing colored lines between them based on stroke timing—using red, green, and blue to indicate the gesture's progression over time.
+
+The data is then split into training, validation, and test sets.
+To improve model robustness, the training set is augmented by applying random translation, scaling, and rotation. For each original training image, 10 augmented versions are generated.
+All resulting images are saved in the corresponding data directories:
+
+- [Instrument Data](./python_instrument/train) 
+
+- [Command Data](./arduino_command/train)
+
+
+### 3. Model Definition and Training
+
+The model was built using TensorFlow and Keras with a simple convolutional architecture. It consists of three 2D convolutional layers:
+
+- Conv1: 16 filters, kernel size 3, stride 2
+
+- Conv2: 32 filters, kernel size 3, stride 2
+
+- Conv3: 64 filters, kernel size 3, stride 2
+
+A final dense layer is used for gesture classification.
+BatchNormalization is applied after each convolutional layer for training stability, and Dropout is used to prevent overfitting:
+
+```python
+def make_model(input_shape: Tuple[int, int, int], num_classes: int) -> keras.Model:
+    """
+    Builds a convolutional neural network model using TensorFlow Keras.
+    """
+    # Input layer
+    inputs = keras.Input(shape=input_shape)
+
+    # Entry block
+    x = layers.Rescaling(1.0 / 255)(inputs)
+    x = layers.Conv2D(16, kernel_size=3, strides=2, padding="same")(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relu")(x)
+    x = layers.Dropout(0.5)(x)
+
+    x = layers.Conv2D(32, kernel_size=3, strides=2, padding="same")(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relu")(x)
+    x = layers.Dropout(0.5)(x)
+
+    x = layers.Conv2D(64, kernel_size=3, strides=2, padding="same")(x)
+    x = layers.BatchNormalization()(x)
+    x = layers.Activation("relu")(x)
+    x = layers.Dropout(0.5)(x)
+
+    # Global feature pooling
+    x = layers.GlobalAveragePooling2D()(x)
+
+    # Classifier block
+    x = layers.Dropout(0.5)(x)
+    outputs = layers.Dense(units=num_classes, activation="softmax")(x)
+
+    # Construct model
+    return keras.Model(inputs=inputs, outputs=outputs)
+``` 
+
+The model was trained for 30 epochs, using callbacks to monitor performance and apply early stopping based on validation loss. This helped prevent overfitting and ensured efficient training.
+
+After training, the model was converted into a TensorFlow Lite model and quantized to int8 for efficient deployment.
+The quantized models are saved here:
+
+- Instrument Model
+
+- Command Model
+
+In the final step, each model was converted into a C array (model.cc) to be included directly in the Arduino firmware.
 
 ## Arduino 
 
