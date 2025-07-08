@@ -21,6 +21,7 @@ All of it unfolds through a custom-built web interface, where each instrument se
 5. [Arduino Sketch](#arduino)
 6. [Frontend](#frontend)
 7. [Setup](#setup)
+8. [License](#license)
 
 ## Team
 
