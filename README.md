@@ -259,7 +259,6 @@ The core components include:
 
 -    [draw-canvas.vue](./app/components/draw-canvas.vue) – Renders incoming stroke data on a canvas for real-time visualization.
 
--    [uuid.vue](./app/components/uuid.vue) – Handles UUID configuration and Bluetooth characteristic setup for communication with the Arduino.
 
 ## Setup
 
