@@ -21,7 +21,7 @@
   "devDependencies": {
     "@antfu/eslint-config": "^4.16.2",
     "@iconify/icons-lucide": "^1.2.135",
-    "@nuxt/eslint": "^1.5.1",
+    "@nuxt/eslint": "^1.5.2",
     "@nuxt/ui": "^3.2.0",
     "@types/howler": "^2.2.12",
     "@types/web-bluetooth": "^0.0.21",

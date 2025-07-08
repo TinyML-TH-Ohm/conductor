@@ -102,8 +102,8 @@ alignas(16) uint8_t tensor_arena[kTensorArenaSize];
 const tflite::Model *model = nullptr;
 tflite::MicroInterpreter *interpreter = nullptr;
 
-constexpr int label_count = 8;
-const char *labels[label_count] = { "0", "1", "2", "3", "4", "5", "6", "7" };
+constexpr int label_count = 4;
+const char *labels[label_count] = { "0", "1", "2", "3" };
 
 void SetupIMU() {
   // Make sure we are pulling measurements into a FIFO.

@@ -1,121 +1,138 @@
 <script setup lang="ts">
-import type { Command } from '~~/shared/types'
+import type { SelectItem } from '#ui/types'
+import type { DrawCanvasPrediction, Instrument, StateInstrument } from '~~/shared/types'
+import { upperFirst } from 'scule'
 import {
   COMMAND_BLE_PREDICTION_UUID,
   COMMAND_BLE_STROKE_UUID,
+  COMMAND_LABELS,
   COMMAND_SERVICE_UUID,
   INSTRUMENT_BLE_PREDICTION_UUID,
   INSTRUMENT_BLE_STROKE_UUID,
+  INSTRUMENT_LABELS,
   INSTRUMENT_SERVICE_UUID,
-  LABELS,
 } from '~~/shared/constants'
 
 const { state: localState, reset: resetLocalState } = useLocalState()
 const { state: syncState, reset: resetSyncState } = useSyncState()
 
-const keys = Object.values(LABELS)
-const key = shallowRef<typeof keys[number]>()
+type SelectItemBase = Extract<SelectItem, object>
+const instructions: SelectItemBase[] = [
+  {
+    type: 'label',
+    label: 'Instruments',
+  },
+  ...Object.values(INSTRUMENT_LABELS).map(l => ({
+    type: 'item' as const,
+    label: upperFirst(l),
+    value: l,
+    kind: 'instrument',
+  })),
+  {
+    type: 'separator',
+  },
+  {
+    type: 'label',
+    label: 'Commands',
+  },
+  ...Object.values(COMMAND_LABELS).map(l => ({
+    type: 'item' as const,
+    label: upperFirst(l),
+    value: l,
+    kind: 'command',
+  })),
+]
+const instruction = shallowRef<string>()
+function onChangeInstruction() {
+  const _instruction = instructions.find(i => i.type === 'item' && i.label === instruction.value)
+  if (!_instruction)
+    return
 
-function onPredict(v: { command: Command, score: number, dev: boolean }) {
+  onPredict({
+    label: _instruction.value as any,
+    score: 100,
+    type: _instruction.kind as any,
+    dev: true,
+  })
+}
+
+function onPredict(v: DrawCanvasPrediction & { dev: boolean }) {
   const instruments = syncState.value.instruments
-  const type = localState.value.type
 
-  switch (v.command) {
-    case 'on':{
-      if (!!v.dev && type === 'instrument')
-        return
-
-      if (syncState.value.instrument) {
-        instruments[syncState.value.instrument].playing = true
-      }
-      break
-    }
-
-    case 'off': {
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        instruments[syncState.value.instrument].playing = false
-        syncState.value.instrument = undefined
-      }
-      break
-    }
-
-    case 'cello':
-    case 'viola':
-    case 'violin1':
-    case 'violin2':
-    {
-      if (!!v.dev && type === 'command')
-        break
-
-      syncState.value.instrument = v.command
-      syncState.value.instruments[v.command].playing = true
-      break
-    }
-
-    case 'volume down':{
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        const volume = instruments[syncState.value.instrument].volume
-        instruments[syncState.value.instrument].volume = Math.max(0, volume - 50)
-      }
-      break
-    }
-
-    case 'volume up':{
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        const volume = instruments[syncState.value.instrument].volume
-        instruments[syncState.value.instrument].volume = Math.min(100, volume + 50)
-      }
-      break
-    }
-
-    case 'speed down':{
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        const speed = instruments[syncState.value.instrument].speed
-        instruments[syncState.value.instrument].speed = Math.max(0.25, speed - 0.25)
-      }
-      break
-    }
-
-    case 'speed up':{
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        const speed = instruments[syncState.value.instrument].speed
-        instruments[syncState.value.instrument].speed = Math.min(2.0, speed + 0.25)
-      }
-      break
-    }
+  localState.value.last = {
+    label: v.label,
+    score: v.score,
   }
 
-  localState.value.last = v
+  if (v.score < 75)
+    return
+
+  if (v.type === 'command') {
+    switch (v.label) {
+      case 'volume down':{
+        if (syncState.value.instrument) {
+          const volume = instruments[syncState.value.instrument].volume
+          instruments[syncState.value.instrument].volume = Math.max(0, volume - 50)
+        }
+        break
+      }
+
+      case 'volume up':{
+        if (syncState.value.instrument) {
+          const volume = instruments[syncState.value.instrument].volume
+          instruments[syncState.value.instrument].volume = Math.min(100, volume + 50)
+        }
+        break
+      }
+
+      case 'speed down':{
+        if (syncState.value.instrument) {
+          const speed = instruments[syncState.value.instrument].speed
+          instruments[syncState.value.instrument].speed = Math.max(0.25, speed - 0.25)
+        }
+        break
+      }
+
+      case 'speed up':{
+        if (syncState.value.instrument) {
+          const speed = instruments[syncState.value.instrument].speed
+          instruments[syncState.value.instrument].speed = Math.min(2.0, speed + 0.25)
+        }
+        break
+      }
+    }
+  }
+  else {
+    switch (v.label) {
+      case 'cello':
+      case 'viola':
+      case 'violin1':
+      case 'violin2':
+      {
+        syncState.value.instrument = v.label
+        syncState.value.instruments[v.label].playing = !syncState.value.instruments[v.label].playing
+        break
+      }
+
+      case 'all':{
+        syncState.value.instrument = undefined
+        const entries = Object.entries(syncState.value.instruments) as [Instrument, StateInstrument][]
+        const every = entries.every(([_, v]) => v.playing)
+        entries.forEach(([_, v]) => v.playing = !every)
+        break
+      }
+    }
+  }
 }
 
 const cm = useColorMode()
 const drawCanvas = useTemplateRef('draw-canvas')
 
 function reset() {
-  let i = 0
-  const interval = setInterval(() => {
-    drawCanvas.value?.disconnect()
-    resetLocalState()
-    resetSyncState()
-    i++
-    if (i === 5)
-      clearInterval(interval)
-  }, 500)
+  drawCanvas.value?.disconnect()
+  resetLocalState()
+  resetSyncState()
+  instruction.value = undefined
 }
 
 onMounted(reset)
@@ -228,8 +245,8 @@ onMounted(reset)
         </div>
 
         <div class="text-sm flex gap-1">
-          <span class="text-dimmed">Last command:</span>
-          <span>{{ localState.last.command }}</span>
+          <span class="text-dimmed">Last instruction:</span>
+          <span>{{ localState.last.label }}</span>
           <span class="text-dimmed">| {{ localState.last.score }}%</span>
         </div>
 
@@ -285,12 +302,13 @@ onMounted(reset)
 
           <div class="flex items-center gap-4">
             <USelect
-              v-model="key"
-              :items="keys"
+              v-model="instruction"
+              :items="instructions"
               size="sm"
-              placeholder="Select command"
+              value-key="label"
+              placeholder="Select instruction"
               class="grow"
-              @blur="key ? onPredict({ command: key, score: 100, dev: true }) : undefined"
+              @blur="onChangeInstruction"
             />
 
             <span class="text-sm">
