@@ -137,28 +137,12 @@ onMounted(reset)
       </h1>
 
       <div class="flex gap-2">
-        <UPopover>
-          <UButton
-            icon="i-lucide:circle-question-mark"
-            variant="soft"
-            size="sm"
-          />
-          <template #content>
-            <div class="max-w-[90vw] overflow-x-auto p-2 bg-white">
-              <div class="flex gap-4">
-                <img src="public/gesture_pictures/Instrument-Violin1.svg" alt="Violin1" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Instrument-Violin2.svg" alt="Violin2" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Instrument-Viola.svg" alt="Viola" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Instrument-Cello.svg" alt="Cello" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Instrument-All.svg" alt="Instruments" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Command-VolumeUp.svg" alt="Volume up" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Command-VolumeDown.svg" alt="Volume down" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Command-SpeedUp.svg" alt="Speed up" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Command-SpeedDown.svg" alt="Speed down" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-              </div>
-            </div>
-          </template>
-        </UPopover>
+        <UButton
+          :icon="cm.preference === 'light' ? 'i-lucide:sun' : 'i-lucide:moon'"
+          size="sm"
+          variant="soft"
+          @click="cm.preference = cm.preference === 'light' ? 'dark' : 'light'"
+        />
 
         <UButton
           icon="i-lucide:github"
@@ -168,12 +152,31 @@ onMounted(reset)
           target="_blank"
         />
 
-        <UButton
-          :icon="cm.preference === 'light' ? 'i-lucide:sun' : 'i-lucide:moon'"
-          size="sm"
-          variant="soft"
-          @click="cm.preference = cm.preference === 'light' ? 'dark' : 'light'"
-        />
+        <UPopover mode="click" :content="{ align: 'end' }">
+          <UButton
+            icon="i-lucide:circle-question-mark"
+            variant="soft"
+            size="sm"
+          />
+          <template #content>
+            <div class="px-2 py-4 gap-4 flex items-center justify-center flex-col">
+              <p class="text-2xl text-success">
+                Gestures
+              </p>
+              <div class="grid grid-cols-5 gap-2">
+                <GesturesCello class="size-56" />
+                <GesturesViola class="size-56" />
+                <GesturesViolin1 class="size-56" />
+                <GesturesViolin2 class="size-56" />
+                <GesturesAll class="size-56" />
+                <GesturesVolumeDown class="size-56" />
+                <GesturesVolumeUp class="size-56" />
+                <GesturesSpeedDown class="size-56" />
+                <GesturesSpeedUp class="size-56" />
+              </div>
+            </div>
+          </template>
+        </UPopover>
       </div>
     </div>
 
