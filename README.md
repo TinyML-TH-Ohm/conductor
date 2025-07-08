@@ -250,8 +250,6 @@ The frontend is built with Nuxt, a framework based on Vue.js, and is designed to
 
 The core components include:
 
-- [app.vue](./app/app.vue) – The root component that initializes the app and handles global layout and state.
-
 -  [index.vue](./app/pages/index.vue) – The landing view, introducing the user to the conductor experience.
 
 -    [hall.vue](./app/components/hall.vue) – The main interface where instrument sections are displayed and gesture input is visualized.
@@ -327,6 +325,12 @@ pip install -r requirements.txt
 
 Jupyter notebooks for model training are available in [/python_instrument](/python_instrument) and [/python_command](/python_command).
 
-## Credit
 
-- [TensorFlow Lite Micro Library for Arduino](https://github.com/tensorflow/tflite-micro-arduino-examples#how-to-install)
+## License 
+This project is licensed under the MIT License.
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
