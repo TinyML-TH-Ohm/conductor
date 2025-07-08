@@ -155,6 +155,13 @@ onMounted(reset)
 
       <div class="flex gap-2">
         <UButton
+          :icon="cm.preference === 'light' ? 'i-lucide:sun' : 'i-lucide:moon'"
+          size="sm"
+          variant="soft"
+          @click="cm.preference = cm.preference === 'light' ? 'dark' : 'light'"
+        />
+
+        <UButton
           icon="i-lucide:github"
           variant="soft"
           size="sm"
@@ -162,12 +169,31 @@ onMounted(reset)
           target="_blank"
         />
 
-        <UButton
-          :icon="cm.preference === 'light' ? 'i-lucide:sun' : 'i-lucide:moon'"
-          size="sm"
-          variant="soft"
-          @click="cm.preference = cm.preference === 'light' ? 'dark' : 'light'"
-        />
+        <UPopover mode="click" :content="{ align: 'end' }">
+          <UButton
+            icon="i-lucide:circle-question-mark"
+            variant="soft"
+            size="sm"
+          />
+          <template #content>
+            <div class="px-2 py-4 gap-4 flex items-center justify-center flex-col">
+              <p class="text-2xl text-success">
+                Gestures
+              </p>
+              <div class="grid grid-cols-5 gap-2">
+                <GesturesCello class="size-56" />
+                <GesturesViola class="size-56" />
+                <GesturesViolin1 class="size-56" />
+                <GesturesViolin2 class="size-56" />
+                <GesturesAll class="size-56" />
+                <GesturesVolumeDown class="size-56" />
+                <GesturesVolumeUp class="size-56" />
+                <GesturesSpeedDown class="size-56" />
+                <GesturesSpeedUp class="size-56" />
+              </div>
+            </div>
+          </template>
+        </UPopover>
       </div>
     </div>
 
