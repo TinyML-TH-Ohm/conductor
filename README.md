@@ -17,7 +17,10 @@ All of it unfolds through a custom-built web interface, where each instrument se
 1. [Team](#team)
 2. [Idea](#idea)
 3. [Overview](#overview)
-4. [Setup](#setup)
+4. [Models](#models)
+5. [Arduino Sketch](#arduino)
+6. [Frontend](#frontend)
+7. [Setup](#setup)
 
 ## Team
 
@@ -243,19 +246,23 @@ At this point, the stroke is rasterized into an image, and inference is triggere
 
 ![Conductor Web Interface](./preview.png 'Conductor Web Interface')
 
+The frontend is built with Nuxt, a framework based on Vue.js, and is designed to visualize gestures and control the digital orchestra in real time. It connects to the Arduino devices via Bluetooth, receives gesture predictions and stroke data, and maps these to instrument controls and visual feedback.
+
+The core components include:
+
+- [app.vue](./app/app.vue) – The root component that initializes the app and handles global layout and state.
+
+-  [index.vue](./app/pages/index.vue) – The landing view, introducing the user to the conductor experience.
+
+-    [hall.vue](./app/components/hall.vue) – The main interface where instrument sections are displayed and gesture input is visualized.
+
+-    [hall-audio.vue](./app/components/hall-audio.vue) – Manages audio playback logic for each instrument section based on gestures.
+
+-    [draw-canvas.vue](./app/components/draw-canvas.vue) – Renders incoming stroke data on a canvas for real-time visualization.
+
+-    [uuid.vue](./app/components/uuid.vue) – Handles UUID configuration and Bluetooth characteristic setup for communication with the Arduino.
 
 ## Setup
-
-
-
-### Technologies
-
-- **Frontend:** Nuxt Framework
-- **Hardware:** Arduino Nano 33 BLE Sense
-- **Communication:** Bluetooth Low Energy (BLE)
-- **Machine Learning:** TensorFlow (for model training)
-
-### Getting Started
 
 #### Prerequisites
 
