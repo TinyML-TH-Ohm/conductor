@@ -144,17 +144,17 @@ onMounted(reset)
             size="sm"
           />
           <template #content>
-            <div class="max-w-[90vw] overflow-x-auto p-2">
+            <div class="max-w-[90vw] overflow-x-auto p-2 bg-white">
               <div class="flex gap-4">
-                <img src="public/gesture_pictures/Violin1.png" alt="Violin1" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Violin2.png" alt="Violin2" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Viola.png" alt="Viola" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Cello.png" alt="Cello" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Instruments.png" alt="Instruments" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Volume_up.png" alt="Volume up" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Volume_down.png" alt="Volume down" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Speed_up.png" alt="Speed up" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
-                <img src="public/gesture_pictures/Speed_down.png" alt="Speed down" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Instrument-Violin1.svg" alt="Violin1" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Instrument-Violin2.svg" alt="Violin2" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Instrument-Viola.svg" alt="Viola" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Instrument-Cello.svg" alt="Cello" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Instrument-All.svg" alt="Instruments" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Command-VolumeUp.svg" alt="Volume up" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Command-VolumeDown.svg" alt="Volume down" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Command-SpeedUp.svg" alt="Speed up" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
+                <img src="public/gesture_pictures/Command-SpeedDown.svg" alt="Speed down" class="w-24 sm:w-32 md:w-40 h-auto flex-shrink-0">
               </div>
             </div>
           </template>
