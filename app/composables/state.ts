@@ -49,8 +49,9 @@ export function useLocalState() {
     connected: false,
     drawing: false,
     muted: false,
+    threshold: 75,
     last: {
-      command: undefined,
+      label: undefined,
       score: 0,
     },
   }

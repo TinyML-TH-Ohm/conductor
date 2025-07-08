@@ -58,6 +58,7 @@ export interface LocalState {
   connected: boolean
   drawing: boolean
   muted: boolean
+  threshold: number
   last: {
     label: Command | Instrument | undefined
     score: number

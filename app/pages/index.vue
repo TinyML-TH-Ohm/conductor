@@ -72,7 +72,11 @@ function onPredict(v: DrawCanvasPrediction & { dev: boolean }) {
       case 'volume down':{
         if (syncState.value.instrument) {
           const volume = instruments[syncState.value.instrument].volume
-          instruments[syncState.value.instrument].volume = Math.max(0, volume - 50)
+          const v = Math.max(0, volume - 50)
+          if (v === 0)
+            instruments[syncState.value.instrument].playing = false
+          else
+            instruments[syncState.value.instrument].volume = v
         }
         break
       }
@@ -246,8 +250,9 @@ onMounted(reset)
 
         <div class="text-sm flex gap-1">
           <span class="text-dimmed">Last instruction:</span>
-          <span>{{ localState.last.label }}</span>
-          <span class="text-dimmed">| {{ localState.last.score }}%</span>
+          <span>{{ localState.last.label ?? 'n/a' }}</span>
+          <span class="text-dimmed mx-2">|</span>
+          <span>{{ localState.last.score }}%</span>
         </div>
 
         <div class="grid gap-1.5">
@@ -298,7 +303,7 @@ onMounted(reset)
         </div>
 
         <div class="grid gap-1.5">
-          <span class="text-sm text-dimmed">DEV:</span>
+          <span class="text-sm text-dimmed">DEV (instruction, threshold, time):</span>
 
           <div class="flex items-center gap-4">
             <USelect
@@ -311,7 +316,13 @@ onMounted(reset)
               @blur="onChangeInstruction"
             />
 
-            <span class="text-sm">
+            <UInputNumber
+              v-model="localState.threshold"
+              size="sm"
+              class="max-w-32"
+            />
+
+            <span class="text-sm text-dimmed">
               {{ syncState.time.toFixed(2) }}s
             </span>
           </div>
@@ -321,16 +332,6 @@ onMounted(reset)
       <div class="card grid grid-cols-2 p-4 gap-4">
         <div class="flex flex-col gap-4 text-xs">
           <p class="font-extrabold text-base">
-            Instrument:
-          </p>
-
-          <uuid label="Service UUID" :value="INSTRUMENT_SERVICE_UUID" />
-          <uuid label="Stroke UUID" :value="INSTRUMENT_BLE_STROKE_UUID" />
-          <uuid label="Prediction UUID" :value="INSTRUMENT_BLE_PREDICTION_UUID" />
-        </div>
-
-        <div class="flex flex-col gap-4 text-xs">
-          <p class="font-extrabold text-base">
             Command:
           </p>
 
@@ -338,16 +339,22 @@ onMounted(reset)
           <uuid label="Stroke UUID" :value="COMMAND_BLE_STROKE_UUID" />
           <uuid label="Prediction UUID" :value="COMMAND_BLE_PREDICTION_UUID" />
         </div>
+
+        <div class="flex flex-col gap-4 text-xs">
+          <p class="font-extrabold text-base">
+            Instrument:
+          </p>
+
+          <uuid label="Service UUID" :value="INSTRUMENT_SERVICE_UUID" />
+          <uuid label="Stroke UUID" :value="INSTRUMENT_BLE_STROKE_UUID" />
+          <uuid label="Prediction UUID" :value="INSTRUMENT_BLE_PREDICTION_UUID" />
+        </div>
       </div>
 
       <div class="card p-4 flex flex-col gap-4 text-xs">
         <p class="font-extrabold text-base">
           Notes:
         </p>
-        <div class="grid gap-1">
-          <span class="text-dimmed">WIP: </span>
-          <span>- speed gestures</span>
-        </div>
       </div>
     </div>
   </div>

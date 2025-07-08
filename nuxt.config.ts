@@ -17,7 +17,8 @@ export default defineNuxtConfig({
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
       ],
       link: [
-        { rel: 'icon', href: import.meta.dev ? 'favicon.ico' : `${import.meta.env.NUXT_APP_BASE_URL}/favicon.ico` },
+        { rel: 'icon', href: '/favicon.ico' },
+        { rel: 'icon', href: '/conductor/favicon.ico' },
       ],
       htmlAttrs: {
         lang: 'en',

@@ -9,7 +9,7 @@ export const INSTRUMENT_BLE_PREDICTION_UUID = '74696e79-6d6c-3235-0002-74696e796
 export const COMMAND_LABELS = {
   0: 'volume down', // <
   1: 'volume up', // >
-  2: 'speed down', //  v
+  2: 'speed down', // v
   3: 'speed up', // ^
 } as const
 
