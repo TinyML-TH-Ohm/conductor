@@ -191,8 +191,6 @@ In the final step, each model was converted into a C array (model.cc) to be incl
 
 ## Arduino 
 
-Arduino
-
 This section covers the firmware running on the two Arduino Nano 33 BLE boards.
 Each board handles real-time IMU data processing, gesture recognition using a TensorFlow Lite model, and communication with the host computer via Bluetooth.
 
@@ -233,6 +231,13 @@ Bluetooth is used to transmit both raw stroke data and inference results to the 
 
 -   predictionCharacteristic (Notify Characteristic)
     Sends the classification result of the on-device model inference as soon as it becomes available.
+
+### Gesture Classification
+
+A gesture is detected based on changes in estimated orientation.
+When the cumulative change in orientation over the last 50 samples exceeds a defined threshold, gesture recording begins.
+Once the movement falls back below the threshold and the recorded stroke reaches a minimum length, the gesture is considered complete.
+At this point, the stroke is rasterized into an image, and inference is triggered using the on-device model.
 
 ## Frontend
 
