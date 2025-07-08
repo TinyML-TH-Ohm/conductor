@@ -183,13 +183,56 @@ The model was trained for 30 epochs, using callbacks to monitor performance and 
 After training, the model was converted into a TensorFlow Lite model and quantized to int8 for efficient deployment.
 The quantized models are saved here:
 
-- Instrument Model
+- Instrument Model (links can only be added once we merge the repo)
 
 - Command Model
 
 In the final step, each model was converted into a C array (model.cc) to be included directly in the Arduino firmware.
 
 ## Arduino 
+
+Arduino
+
+This section covers the firmware running on the two Arduino Nano 33 BLE boards.
+Each board handles real-time IMU data processing, gesture recognition using a TensorFlow Lite model, and communication with the host computer via Bluetooth.
+
+The corresponding Arduino sketches can be found here:
+
+- [Instrument Arduino Code](./arduino_instrument)
+
+- [Command Arduino Code](./arduino_command/)
+
+Each Arduino directory includes the following key files:
+
+-   [arduino_instrument.ino](./arduino_instrument/arduino_instrument.ino) / [instrument_command.ino](./arduino_command/arduino_command.ino):
+
+    The main application loop that manages IMU data collection, preprocessing, gesture inference, and communication over serial and Bluetooth.
+
+-   [rasterize_stroke.cpp](./arduino_command/rasterize_stroke.cpp):
+
+    Responsible for converting normalized IMU data into 2D images through rasterization, preparing input for the model.
+
+-   [model.cc](./arduino_command/model.cc):
+
+    Contains the quantized TensorFlow Lite model as a C array, ready for inference on-device.
+
+### Orientation Estimation
+
+The IMU is configured in continuous mode, and gyroscope samples are buffered as they arrive.
+When the device is nearly stationary, a small batch of recent gyroscope readings is averaged to estimate and subtract sensor drift.
+
+Each drift-corrected angular velocity is then multiplied by the inverse of the sample rate (Δt) and cumulatively integrated to update a running orientation vector for the X, Y, and Z axes.
+This provides a simple estimate of orientation over time—sufficient for generating stroke paths—without fusing accelerometer data.
+
+### Bluetooth Communication
+
+Bluetooth is used to transmit both raw stroke data and inference results to the host system. Two characteristics are defined for this purpose:
+
+-   strokeCharacteristic (Read Characteristic)
+    Provides the list of stroke points in real time. This is used during data collection and to visualize the current gesture in the frontend.
+
+-   predictionCharacteristic (Notify Characteristic)
+    Sends the classification result of the on-device model inference as soon as it becomes available.
 
 ## Frontend
 
