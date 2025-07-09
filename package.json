@@ -15,13 +15,10 @@
     "postinstall": "nuxt prepare && npx simple-git-hooks",
     "lint": "npx eslint ."
   },
-  "dependencies": {
-    "howler": "^2.2.4"
-  },
   "devDependencies": {
     "@antfu/eslint-config": "^4.16.2",
     "@iconify/icons-lucide": "^1.2.135",
-    "@nuxt/eslint": "^1.5.1",
+    "@nuxt/eslint": "^1.5.2",
     "@nuxt/ui": "^3.2.0",
     "@types/howler": "^2.2.12",
     "@types/web-bluetooth": "^0.0.21",
@@ -29,6 +26,7 @@
     "@vueuse/nuxt": "^13.5.0",
     "eslint": "^9.30.1",
     "eslint-plugin-format": "^1.0.1",
+    "howler": "^2.2.4",
     "nano-staged": "^0.8.0",
     "nuxt": "^3.17.5",
     "simple-git-hooks": "^2.13.0",

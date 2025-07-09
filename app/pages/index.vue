@@ -1,121 +1,195 @@
 <script setup lang="ts">
-import type { Command } from '~~/shared/types'
+import type { SelectItem } from '#ui/types'
+import type { DrawCanvasPrediction, Instrument, StateInstrument } from '~~/shared/types'
+import { upperFirst } from 'scule'
 import {
   COMMAND_BLE_PREDICTION_UUID,
   COMMAND_BLE_STROKE_UUID,
+  COMMAND_LABELS,
   COMMAND_SERVICE_UUID,
   INSTRUMENT_BLE_PREDICTION_UUID,
   INSTRUMENT_BLE_STROKE_UUID,
+  INSTRUMENT_LABELS,
   INSTRUMENT_SERVICE_UUID,
-  LABELS,
 } from '~~/shared/constants'
 
 const { state: localState, reset: resetLocalState } = useLocalState()
 const { state: syncState, reset: resetSyncState } = useSyncState()
 
-const keys = Object.values(LABELS)
-const key = shallowRef<typeof keys[number]>()
+type SelectItemBase = Extract<SelectItem, object>
+const instructions: SelectItemBase[] = [
+  {
+    type: 'label',
+    label: 'Instruments',
+  },
+  ...Object.values(INSTRUMENT_LABELS).map(l => ({
+    type: 'item' as const,
+    label: upperFirst(l),
+    value: l,
+    kind: 'instrument',
+  })),
+  {
+    type: 'separator',
+  },
+  {
+    type: 'label',
+    label: 'Commands',
+  },
+  ...Object.values(COMMAND_LABELS).map(l => ({
+    type: 'item' as const,
+    label: upperFirst(l),
+    value: l,
+    kind: 'command',
+  })),
+]
+const instruction = shallowRef<string>()
+function onChangeInstruction() {
+  const _instruction = instructions.find(i => i.type === 'item' && i.label === instruction.value)
+  if (!_instruction)
+    return
 
-function onPredict(v: { command: Command, score: number, dev: boolean }) {
+  onPredict({
+    label: _instruction.value as any,
+    score: 100,
+    type: _instruction.kind as any,
+    dev: true,
+  })
+}
+
+function onPredict(v: DrawCanvasPrediction & { dev: boolean }) {
   const instruments = syncState.value.instruments
-  const type = localState.value.type
 
-  switch (v.command) {
-    case 'on':{
-      if (!!v.dev && type === 'instrument')
-        return
-
-      if (syncState.value.instrument) {
-        instruments[syncState.value.instrument].playing = true
-      }
-      break
-    }
-
-    case 'off': {
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        instruments[syncState.value.instrument].playing = false
-        syncState.value.instrument = undefined
-      }
-      break
-    }
-
-    case 'cello':
-    case 'viola':
-    case 'violin1':
-    case 'violin2':
-    {
-      if (!!v.dev && type === 'command')
-        break
-
-      syncState.value.instrument = v.command
-      syncState.value.instruments[v.command].playing = true
-      break
-    }
-
-    case 'volume down':{
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        const volume = instruments[syncState.value.instrument].volume
-        instruments[syncState.value.instrument].volume = Math.max(0, volume - 50)
-      }
-      break
-    }
-
-    case 'volume up':{
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        const volume = instruments[syncState.value.instrument].volume
-        instruments[syncState.value.instrument].volume = Math.min(100, volume + 50)
-      }
-      break
-    }
-
-    case 'speed down':{
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        const speed = instruments[syncState.value.instrument].speed
-        instruments[syncState.value.instrument].speed = Math.max(0.25, speed - 0.25)
-      }
-      break
-    }
-
-    case 'speed up':{
-      if (!!v.dev && type === 'instrument')
-        break
-
-      if (syncState.value.instrument) {
-        const speed = instruments[syncState.value.instrument].speed
-        instruments[syncState.value.instrument].speed = Math.min(2.0, speed + 0.25)
-      }
-      break
-    }
+  localState.value.last = {
+    label: v.label,
+    score: v.score,
   }
 
-  localState.value.last = v
+  if (v.score < localState.value.threshold)
+    return
+
+  const all = Object.values(INSTRUMENT_LABELS)
+
+  if (v.type === 'command') {
+    switch (v.label) {
+      case 'volume down':{
+        const instrument = syncState.value.instrument
+        if (!instrument)
+          break
+
+        const volume = instruments[instrument].volume
+        const v = Math.max(0, volume - 25)
+
+        if (v === 0) {
+          if (instrument === 'all') {
+            for (const x of all) {
+              instruments[x].playing = false
+            }
+          }
+          else {
+            instruments[instrument].playing = false
+          }
+        }
+        else {
+          if (instrument === 'all') {
+            for (const x of all) {
+              instruments[x].volume = v
+            }
+          }
+          else {
+            instruments[instrument].volume = v
+          }
+        }
+        break
+      }
+
+      case 'volume up':{
+        const instrument = syncState.value.instrument
+        if (!instrument)
+          break
+
+        const volume = instruments[instrument].volume
+        const v = Math.min(100, volume + 25)
+
+        if (instrument === 'all') {
+          for (const x of all) {
+            instruments[x].volume = v
+          }
+        }
+        else {
+          instruments[instrument].volume = v
+        }
+        break
+      }
+
+      case 'speed down':{
+        const instrument = syncState.value.instrument
+        if (!instrument)
+          break
+
+        const speed = instruments[instrument].speed
+        const v = Math.max(0.25, speed - 0.25)
+        if (instrument === 'all') {
+          for (const x of all) {
+            instruments[x].speed = v
+          }
+        }
+        else {
+          instruments[instrument].speed = v
+        }
+        break
+      }
+
+      case 'speed up':{
+        const instrument = syncState.value.instrument
+        if (!instrument)
+          break
+
+        const speed = instruments[instrument].speed
+        const v = Math.min(2.0, speed + 0.25)
+        if (instrument === 'all') {
+          for (const x of all) {
+            instruments[x].speed = v
+          }
+        }
+        else {
+          instruments[instrument].speed = v
+        }
+        break
+      }
+    }
+  }
+  else {
+    switch (v.label) {
+      case 'cello':
+      case 'viola':
+      case 'violin1':
+      case 'violin2':
+      {
+        syncState.value.instrument = v.label
+        syncState.value.instruments[v.label].playing = !syncState.value.instruments[v.label].playing
+        break
+      }
+
+      case 'all':{
+        const entries = Object.entries(syncState.value.instruments) as [Instrument, StateInstrument][]
+        const every = entries.every(([_, v]) => v.playing)
+        entries.forEach(([_, v]) => v.playing = !every)
+
+        syncState.value.instrument = every ? undefined : v.label
+        break
+      }
+    }
+  }
 }
 
 const cm = useColorMode()
 const drawCanvas = useTemplateRef('draw-canvas')
 
 function reset() {
-  let i = 0
-  const interval = setInterval(() => {
-    drawCanvas.value?.disconnect()
-    resetLocalState()
-    resetSyncState()
-    i++
-    if (i === 5)
-      clearInterval(interval)
-  }, 500)
+  drawCanvas.value?.disconnect()
+  resetLocalState()
+  resetSyncState()
+  instruction.value = undefined
 }
 
 onMounted(reset)
@@ -138,6 +212,13 @@ onMounted(reset)
 
       <div class="flex gap-2">
         <UButton
+          :icon="cm.preference === 'light' ? 'i-lucide:sun' : 'i-lucide:moon'"
+          size="sm"
+          variant="soft"
+          @click="cm.preference = cm.preference === 'light' ? 'dark' : 'light'"
+        />
+
+        <UButton
           icon="i-lucide:github"
           variant="soft"
           size="sm"
@@ -145,12 +226,31 @@ onMounted(reset)
           target="_blank"
         />
 
-        <UButton
-          :icon="cm.preference === 'light' ? 'i-lucide:sun' : 'i-lucide:moon'"
-          size="sm"
-          variant="soft"
-          @click="cm.preference = cm.preference === 'light' ? 'dark' : 'light'"
-        />
+        <UPopover mode="click" :content="{ align: 'end' }">
+          <UButton
+            icon="i-lucide:circle-question-mark"
+            variant="soft"
+            size="sm"
+          />
+          <template #content>
+            <div class="px-2 py-4 gap-4 flex items-center justify-center flex-col">
+              <p class="text-2xl text-success">
+                Gestures
+              </p>
+              <div class="grid grid-cols-5 gap-2">
+                <GesturesCello class="size-56" />
+                <GesturesViola class="size-56" />
+                <GesturesViolin1 class="size-56" />
+                <GesturesViolin2 class="size-56" />
+                <GesturesAll class="size-56" />
+                <GesturesVolumeDown class="size-56" />
+                <GesturesVolumeUp class="size-56" />
+                <GesturesSpeedDown class="size-56" />
+                <GesturesSpeedUp class="size-56" />
+              </div>
+            </div>
+          </template>
+        </UPopover>
       </div>
     </div>
 
@@ -202,9 +302,10 @@ onMounted(reset)
         </div>
 
         <div class="text-sm flex gap-1">
-          <span class="text-dimmed">Last command:</span>
-          <span>{{ localState.last.command }}</span>
-          <span class="text-dimmed">| {{ localState.last.score }}%</span>
+          <span class="text-dimmed">Last instruction:</span>
+          <span>{{ localState.last.label ?? 'n/a' }}</span>
+          <span class="text-dimmed mx-2">|</span>
+          <span>{{ localState.last.score }}%</span>
         </div>
 
         <div class="grid gap-1.5">
@@ -231,43 +332,54 @@ onMounted(reset)
                 v-for="[k, v] in Object.entries(syncState.instruments)"
                 :key="k"
                 class="*:py-1 *:px-2"
-                :class="{ 'text-success': syncState.instrument === k }"
+                :class="{
+                  'text-success': syncState.instrument === 'all' || syncState.instrument === k,
+                }"
               >
-                <td class="text-left">
-                  {{ k }}
-                </td>
-                <td class="text-center">
-                  {{ v.volume }}%
-                </td>
-                <td class="text-center">
-                  {{ v.speed.toFixed(2) }}x
-                </td>
-                <td
-                  class="group flex justify-end items-center"
-                  :data-playing="v.playing"
-                >
+                <template v-if="k !== 'all'">
+                  <td class="text-left">
+                    {{ k }}
+                  </td>
+                  <td class="text-center">
+                    {{ v.volume }}%
+                  </td>
+                  <td class="text-center">
+                    {{ v.speed.toFixed(2) }}x
+                  </td>
+                  <td
+                    class="group flex justify-end items-center"
+                    :data-playing="v.playing"
+                  >
                   &nbsp;
-                  <div class="rounded-full size-2 transition-colors bg-error group-data-[playing=true]:bg-success mr-[3ch]" />
-                </td>
+                    <div class="rounded-full size-2 transition-colors bg-error group-data-[playing=true]:bg-success mr-[3ch]" />
+                  </td>
+                </template>
               </tr>
             </tbody>
           </table>
         </div>
 
         <div class="grid gap-1.5">
-          <span class="text-sm text-dimmed">DEV:</span>
+          <span class="text-sm text-dimmed">DEV (instruction, threshold, time):</span>
 
           <div class="flex items-center gap-4">
             <USelect
-              v-model="key"
-              :items="keys"
+              v-model="instruction"
+              :items="instructions"
               size="sm"
-              placeholder="Select command"
+              value-key="label"
+              placeholder="Select instruction"
               class="grow"
-              @blur="key ? onPredict({ command: key, score: 100, dev: true }) : undefined"
+              @blur="onChangeInstruction"
             />
 
-            <span class="text-sm">
+            <UInputNumber
+              v-model="localState.threshold"
+              size="sm"
+              class="max-w-32"
+            />
+
+            <span class="text-sm text-dimmed">
               {{ syncState.time.toFixed(2) }}s
             </span>
           </div>
@@ -277,16 +389,6 @@ onMounted(reset)
       <div class="card grid grid-cols-2 p-4 gap-4">
         <div class="flex flex-col gap-4 text-xs">
           <p class="font-extrabold text-base">
-            Instrument:
-          </p>
-
-          <uuid label="Service UUID" :value="INSTRUMENT_SERVICE_UUID" />
-          <uuid label="Stroke UUID" :value="INSTRUMENT_BLE_STROKE_UUID" />
-          <uuid label="Prediction UUID" :value="INSTRUMENT_BLE_PREDICTION_UUID" />
-        </div>
-
-        <div class="flex flex-col gap-4 text-xs">
-          <p class="font-extrabold text-base">
             Command:
           </p>
 
@@ -294,16 +396,22 @@ onMounted(reset)
           <uuid label="Stroke UUID" :value="COMMAND_BLE_STROKE_UUID" />
           <uuid label="Prediction UUID" :value="COMMAND_BLE_PREDICTION_UUID" />
         </div>
+
+        <div class="flex flex-col gap-4 text-xs">
+          <p class="font-extrabold text-base">
+            Instrument:
+          </p>
+
+          <uuid label="Service UUID" :value="INSTRUMENT_SERVICE_UUID" />
+          <uuid label="Stroke UUID" :value="INSTRUMENT_BLE_STROKE_UUID" />
+          <uuid label="Prediction UUID" :value="INSTRUMENT_BLE_PREDICTION_UUID" />
+        </div>
       </div>
 
       <div class="card p-4 flex flex-col gap-4 text-xs">
         <p class="font-extrabold text-base">
           Notes:
         </p>
-        <div class="grid gap-1">
-          <span class="text-dimmed">WIP: </span>
-          <span>- speed gestures</span>
-        </div>
       </div>
     </div>
   </div>

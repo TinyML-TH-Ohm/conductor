@@ -1,4 +1,4 @@
-import type { LABELS } from './constants'
+import type { COMMAND_LABELS, INSTRUMENT_LABELS } from './constants'
 
 export interface Point {
   x: number
@@ -31,10 +31,10 @@ export interface Features {
   }
 }
 
-export type Command = typeof LABELS[keyof typeof LABELS]
-export type Instrument = keyof SyncState['instruments']
+export type Command = typeof COMMAND_LABELS[keyof typeof COMMAND_LABELS]
+export type Instrument = typeof INSTRUMENT_LABELS[keyof typeof INSTRUMENT_LABELS]
 
-interface StateInstrument {
+export interface StateInstrument {
   volume: number
   speed: number
   playing: boolean
@@ -43,12 +43,7 @@ interface StateInstrument {
 export interface SyncState {
   time: number
   instrument: Instrument | undefined
-  instruments: {
-    cello: StateInstrument
-    violin1: StateInstrument
-    violin2: StateInstrument
-    viola: StateInstrument
-  }
+  instruments: Record<Instrument, StateInstrument>
 }
 
 export interface LocalState {
@@ -62,8 +57,20 @@ export interface LocalState {
   connected: boolean
   drawing: boolean
   muted: boolean
+  threshold: number
   last: {
-    command: Command | undefined
+    label: Command | Instrument | undefined
     score: number
   }
+}
+
+export type DrawCanvasPrediction = ({
+  type: 'command'
+  label: Command
+}
+| {
+  type: 'instrument'
+  label: Instrument
+}) & {
+  score: number
 }
