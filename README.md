@@ -16,12 +16,13 @@ All of it unfolds through a custom-built web interface, where each instrument se
 
 1. [Team](#team)
 2. [Idea](#idea)
-3. [Overview](#overview)
-4. [Models](#models)
-5. [Arduino Sketch](#arduino)
-6. [Frontend](#frontend)
-7. [Setup](#setup)
-8. [License](#license)
+3. [Demo](#demo)
+4. [Overview](#overview)
+5. [Models](#models)
+6. [Arduino Sketch](#arduino)
+7. [Frontend](#frontend)
+8. [Setup](#setup)
+9. [License](#license)
 
 ## Team
 
@@ -44,6 +45,10 @@ Instead of using raw accelerometer and gyroscope data directly for gesture class
 
 These 2D images are then classified into gesture categories by a small convolutional neural network, implemented using TensorFlow Lite for Microcontrollers. The model runs directly on the Arduino Nano 33 BLE’s onboard neural processing unit, enabling efficient, real-time inference on embedded hardware.
 The classification result is transmitted to a central computer and displayed in a custom-built web interface. This interface not only visualizes the recognized gestures but also maps them to playback triggers and volume changes for different sections of the digital orchestra—enabling intuitive, real-time control through gesture alone.
+
+## Demo 
+
+https://github.com/user-attachments/assets/356c1286-dc76-4712-b541-d577f9d9fe08
 
 ## Overview
 
@@ -184,11 +189,10 @@ def make_model(input_shape: Tuple[int, int, int], num_classes: int) -> keras.Mod
 
 The model was trained for 30 epochs, using callbacks to monitor performance and apply early stopping based on validation loss. This helped prevent overfitting and ensured efficient training.
 
-The following visualizations present the accuracy and classification performance of the trained model by using the command gestures as an example. The confusion matrix provides insight into how well each gesture is recognized.
+The following visualizations present the accuracy and classification performance of the trained model by using the command gestures as an example.
 
 ![Conductor](./assets/accuracy_command.png 'Accuracy Command')
 
-![Conductor](./assets/confusion_matrix_command.png 'Confusion Matrix Command')
 
 After training, the model was converted into a TensorFlow Lite model and quantized to int8 for efficient deployment.
 The quantized models are saved here:
@@ -265,7 +269,7 @@ The core components include:
 
 - [draw-canvas.vue](./app/components/draw-canvas.vue) – Renders incoming stroke data on a canvas for real-time visualization.
 
-https://github.com/user-attachments/assets/356c1286-dc76-4712-b541-d577f9d9fe08
+
 
 ## Setup
 
