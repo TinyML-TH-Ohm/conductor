@@ -251,7 +251,7 @@ At this point, the stroke is rasterized into an image, and inference is triggere
 
 ## Frontend
 
-![Conductor Web Interface](./preview.png 'Conductor Web Interface')
+![Conductor Web Interface](./assets/frontend.png 'Conductor Web Interface')
 
 The frontend is built with Nuxt, a framework based on Vue.js, and is designed to visualize gestures and control the digital orchestra in real time. It connects to the Arduino devices via Bluetooth, receives gesture predictions and stroke data, and maps these to instrument controls and visual feedback.
 
