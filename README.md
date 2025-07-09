@@ -72,8 +72,9 @@ The code is organized so that all model-related logic can be found in the follow
 
 ### 1. Data Collection
 
-Data was collected using a general procedure where both Arduinos were connected via Bluetooth. Gestures were recorded using either a simple web interface or a basic Python application [to do add to repo and link here to src folder], both designed to log stroke data for training.
+Data was collected using a general procedure where both Arduinos were connected via Bluetooth. Gestures were recorded using either a simple web interface designed to log stroke data for training. 
 Each recorded stroke consists of a sequence of points that define a gesture path, captured in normalized coordinates ranging from -1 to +1. These are later scaled and rasterized into image representations for training.
+For each gesture, 100 samples were recorded.
 
 The stroke data is saved as a JSON and has the following structure:
 ```python
@@ -183,6 +184,12 @@ def make_model(input_shape: Tuple[int, int, int], num_classes: int) -> keras.Mod
 ``` 
 
 The model was trained for 30 epochs, using callbacks to monitor performance and apply early stopping based on validation loss. This helped prevent overfitting and ensured efficient training.
+
+The following visualizations present the accuracy and classification performance of the trained model by using the command gestures as an example. The confusion matrix provides insight into how well each gesture is recognized.
+
+![Conductor](./assets/accuracy_command.png 'Accuracy Command')
+
+![Conductor](./assets/confusion_matrix_command.png 'Confusion Matrix Command')
 
 After training, the model was converted into a TensorFlow Lite model and quantized to int8 for efficient deployment.
 The quantized models are saved here:
