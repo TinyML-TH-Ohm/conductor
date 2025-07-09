@@ -6,28 +6,28 @@ export function useSyncState() {
     instrument: undefined,
     instruments: {
       cello: {
-        volume: 100,
-        speed: 1.0,
+        volume: 50,
+        speed: 0.5,
         playing: false,
       },
       violin1: {
-        volume: 100,
-        speed: 1.0,
+        volume: 50,
+        speed: 0.5,
         playing: false,
       },
       violin2: {
-        volume: 100,
-        speed: 1.0,
+        volume: 50,
+        speed: 0.5,
         playing: false,
       },
       viola: {
-        volume: 100,
-        speed: 1.0,
+        volume: 50,
+        speed: 0.5,
         playing: false,
       },
       all: {
-        volume: 100,
-        speed: 1.0,
+        volume: 50,
+        speed: 0.5,
         playing: false,
       },
     },
