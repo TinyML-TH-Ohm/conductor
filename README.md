@@ -1,4 +1,3 @@
-
 # Conductor ML
 
 ![Conductor](./assets/conductor.png 'Conductor Image')
@@ -14,6 +13,7 @@ Using two Arduino Nano 33 boards, your gestures shape the music—guiding instru
 All of it unfolds through a custom-built web interface, where each instrument section is brought to life before your eyes.
 
 ## Table of Contents
+
 1. [Team](#team)
 2. [Idea](#idea)
 3. [Overview](#overview)
@@ -27,10 +27,11 @@ All of it unfolds through a custom-built web interface, where each instrument se
 
 This project was developed as part of the TinyML course led by [Prof. Cristian Axenie](https://www.th-nuernberg.de/person/axenie-cristian/) at the Georg Simon Ohm University of Applied Sciences Nuremberg during the summer semester of 2025.
 The team behind ConductorML consists of
+
 - Eleonora Schubert, 3296062, schubertel75720@th-nuernberg.de
 - Kristoph Kolert, 3128311, kolertkr103269@th-nuernberg.de
 - Tan Phat Nguyen, 3818565, nguyenta100556@th-nuernberg.de
-- Robin Feldmann, 3538270, feldmannro80685@th-nuernberg.de, 
+- Robin Feldmann, 3538270, feldmannro80685@th-nuernberg.de,
 
 united by a shared passion for music, technology, and creative experimentation.
 
@@ -50,15 +51,15 @@ The following sections are organized to provide a clear overview of all the movi
 
 1. [Models](#models)
 
-    This section explains how our gesture classification models were developed—from the initial data collection and preprocessing steps to model architecture and training. It provides insight into the process of transforming raw IMU data into effective, deployable models.
+   This section explains how our gesture classification models were developed—from the initial data collection and preprocessing steps to model architecture and training. It provides insight into the process of transforming raw IMU data into effective, deployable models.
 
-2.  [Arduino Sketch](#arduino)
+2. [Arduino Sketch](#arduino)
 
-    Here we detail how the trained models are deployed on the Arduino Nano 33 BLE using TensorFlow Lite for Microcontrollers. You'll find information on real-time inference, onboard data preprocessing, and the Bluetooth communication setup used to transmit predictions and stroke data.
+   Here we detail how the trained models are deployed on the Arduino Nano 33 BLE using TensorFlow Lite for Microcontrollers. You'll find information on real-time inference, onboard data preprocessing, and the Bluetooth communication setup used to transmit predictions and stroke data.
 
-3.  [Frontend](#frontend)
+3. [Frontend](#frontend)
 
-    This part covers the code powering the web interface that brings everything together. It receives gesture classifications and stroke data via Bluetooth, maps them to musical actions, and controls both the audio playback and visual feedback of the digital orchestra.
+   This part covers the code powering the web interface that brings everything together. It receives gesture classifications and stroke data via Bluetooth, maps them to musical actions, and controls both the audio playback and visual feedback of the digital orchestra.
 
 ## Models
 
@@ -69,14 +70,14 @@ The code is organized so that all model-related logic can be found in the follow
 
 - [python_command ](./python_command)– for the command/execution model
 
-
 ### 1. Data Collection
 
-Data was collected using a general procedure where both Arduinos were connected via Bluetooth. Gestures were recorded using either a simple web interface designed to log stroke data for training. 
+Data was collected using a general procedure where both Arduinos were connected via Bluetooth. Gestures were recorded using either a simple web interface designed to log stroke data for training.
 Each recorded stroke consists of a sequence of points that define a gesture path, captured in normalized coordinates ranging from -1 to +1. These are later scaled and rasterized into image representations for training.
 For each gesture, 100 samples were recorded.
 
 The stroke data is saved as a JSON and has the following structure:
+
 ```python
 class StrokePoint:
     """Represents a single point in a gesture stroke.
@@ -96,7 +97,7 @@ class Stroke:
 
 class StrokeData:
     strokes: List[Stroke]
-``` 
+```
 
 The data for the [instrument-selection model is available here](./python_instrument/data), and the data for the [command-control model can be found here](./python_command/data).
 
@@ -110,7 +111,6 @@ Raw normalized data, recorded directly from the gyroscope:
 Processed stroke image, after estimating device orientation through integration and rendering the gesture path as a 64×64 raster image:
 
 ![Transformed 64x64 Image](./assets/circle_stroke.png)
-
 
 ### 2. Preprocessing and Data Augmentation
 
@@ -129,10 +129,9 @@ The data is then split into training, validation, and test sets.
 To improve model robustness, the training set is augmented by applying random translation, scaling, and rotation. For each original training image, 10 augmented versions are generated.
 All resulting images are saved in the corresponding data directories:
 
-- [Instrument Data](./python_instrument/train) 
+- [Instrument Data](./python_instrument/train)
 
 - [Command Data](./arduino_command/train)
-
 
 ### 3. Model Definition and Training
 
@@ -181,7 +180,7 @@ def make_model(input_shape: Tuple[int, int, int], num_classes: int) -> keras.Mod
 
     # Construct model
     return keras.Model(inputs=inputs, outputs=outputs)
-``` 
+```
 
 The model was trained for 30 epochs, using callbacks to monitor performance and apply early stopping based on validation loss. This helped prevent overfitting and ensured efficient training.
 
@@ -200,7 +199,7 @@ The quantized models are saved here:
 
 In the final step, each model was converted into a C array (model.cc) to be included directly in the Arduino firmware.
 
-## Arduino 
+## Arduino
 
 This section covers the firmware running on the two Arduino Nano 33 BLE boards.
 Each board handles real-time IMU data processing, gesture recognition using a TensorFlow Lite model, and communication with the host computer via Bluetooth.
@@ -213,21 +212,21 @@ The corresponding Arduino sketches can be found here:
 
 Each Arduino directory includes the following key files:
 
--   [arduino_instrument.ino](./arduino_instrument/arduino_instrument.ino) / [instrument_command.ino](./arduino_command/arduino_command.ino):
+- [arduino_instrument.ino](./arduino_instrument/arduino_instrument.ino) / [instrument_command.ino](./arduino_command/arduino_command.ino):
 
-    The main application loop that manages IMU data collection, preprocessing, gesture inference, and communication over serial and Bluetooth.
+  The main application loop that manages IMU data collection, preprocessing, gesture inference, and communication over serial and Bluetooth.
 
--   [rasterize_stroke.cpp](./arduino_command/rasterize_stroke.cpp):
+- [rasterize_stroke.cpp](./arduino_command/rasterize_stroke.cpp):
 
-    Responsible for converting normalized IMU data into 2D images through rasterization, preparing input for the model.
+  Responsible for converting normalized IMU data into 2D images through rasterization, preparing input for the model.
 
--   [model.cc](./arduino_command/model.cc):
+- [model.cc](./arduino_command/model.cc):
 
-    Contains the quantized TensorFlow Lite model as a C array, ready for inference on-device.
+  Contains the quantized TensorFlow Lite model as a C array, ready for inference on-device.
 
 ### Orientation Estimation
 
-The IMU is configured in continuous mode with a default sampling rate of 119 Hz, which is also used in this project.
+The IMU is configured in continuous mode with a default sampling rate of 119 Hz, which is also used in this project.
 Gyroscope samples are buffered as they arrive. When the device is nearly stationary, a small batch of recent gyroscope readings is averaged to estimate and subtract sensor drift.
 
 Each drift-corrected angular velocity is then multiplied by the inverse of the sample rate (Δt) and cumulatively integrated to update a running orientation vector for the X, Y, and Z axes.
@@ -237,11 +236,11 @@ This provides a simple estimate of orientation over time—sufficient for genera
 
 Bluetooth is used to transmit both raw stroke data and inference results to the host system. Two characteristics are defined for this purpose:
 
--   strokeCharacteristic (Read Characteristic)
-    Provides the list of stroke points in real time. This is used during data collection and to visualize the current gesture in the frontend.
+- strokeCharacteristic (Read Characteristic)
+  Provides the list of stroke points in real time. This is used during data collection and to visualize the current gesture in the frontend.
 
--   predictionCharacteristic (Notify Characteristic)
-    Sends the classification result of the on-device model inference as soon as it becomes available.
+- predictionCharacteristic (Notify Characteristic)
+  Sends the classification result of the on-device model inference as soon as it becomes available.
 
 ### Gesture Classification
 
@@ -258,14 +257,15 @@ The frontend is built with Nuxt, a framework based on Vue.js, and is designed to
 
 The core components include:
 
--  [index.vue](./app/pages/index.vue) – The landing view, introducing the user to the conductor experience.
+- [index.vue](./app/pages/index.vue) – The landing view, introducing the user to the conductor experience.
 
--    [hall.vue](./app/components/hall.vue) – The main interface where instrument sections are displayed and gesture input is visualized.
+- [hall.vue](./app/components/hall.vue) – The main interface where instrument sections are displayed and gesture input is visualized.
 
--    [hall-audio.vue](./app/components/hall-audio.vue) – Manages audio playback logic for each instrument section based on gestures.
+- [hall-audio.vue](./app/components/hall-audio.vue) – Manages audio playback logic for each instrument section based on gestures.
 
--    [draw-canvas.vue](./app/components/draw-canvas.vue) – Renders incoming stroke data on a canvas for real-time visualization.
+- [draw-canvas.vue](./app/components/draw-canvas.vue) – Renders incoming stroke data on a canvas for real-time visualization.
 
+https://github.com/user-attachments/assets/356c1286-dc76-4712-b541-d577f9d9fe08
 
 ## Setup
 
@@ -332,8 +332,8 @@ pip install -r requirements.txt
 
 Jupyter notebooks for model training are available in [/python_instrument](/python_instrument) and [/python_command](/python_command).
 
+## License
 
-## License 
 This project is licensed under the MIT License.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
