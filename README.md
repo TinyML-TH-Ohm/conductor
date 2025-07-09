@@ -46,6 +46,9 @@ Instead of using raw accelerometer and gyroscope data directly for gesture class
 These 2D images are then classified into gesture categories by a small convolutional neural network, implemented using TensorFlow Lite for Microcontrollers. The model runs directly on the Arduino Nano 33 BLE’s onboard neural processing unit, enabling efficient, real-time inference on embedded hardware.
 The classification result is transmitted to a central computer and displayed in a custom-built web interface. This interface not only visualizes the recognized gestures but also maps them to playback triggers and volume changes for different sections of the digital orchestra—enabling intuitive, real-time control through gesture alone.
 
+![Gestures](./assets/gestrues_1.png 'Conductor Image')
+![Gestures](./assets/gestrues_2.png 'Conductor Image')
+
 ## Demo 
 
 https://github.com/user-attachments/assets/356c1286-dc76-4712-b541-d577f9d9fe08
