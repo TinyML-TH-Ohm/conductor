@@ -200,9 +200,9 @@ The following visualizations present the accuracy and classification performance
 After training, the model was converted into a TensorFlow Lite model and quantized to int8 for efficient deployment.
 The quantized models are saved here:
 
-- Instrument Model (links can only be added once we merge the repo)
+- [model.cc](./arduino_instrument/model.cc) – for the instrument-selection model
 
-- Command Model
+- [model.cc](./arduino_command/model.cc) – for the command-selection model
 
 In the final step, each model was converted into a C array (model.cc) to be included directly in the Arduino firmware.
 
