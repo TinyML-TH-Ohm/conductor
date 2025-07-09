@@ -64,43 +64,95 @@ function onPredict(v: DrawCanvasPrediction & { dev: boolean }) {
     score: v.score,
   }
 
-  if (v.score < 75)
+  if (v.score < localState.value.threshold)
     return
+
+  const all = Object.values(INSTRUMENT_LABELS)
 
   if (v.type === 'command') {
     switch (v.label) {
       case 'volume down':{
-        if (syncState.value.instrument) {
-          const volume = instruments[syncState.value.instrument].volume
-          const v = Math.max(0, volume - 50)
-          if (v === 0)
-            instruments[syncState.value.instrument].playing = false
-          else
-            instruments[syncState.value.instrument].volume = v
+        const instrument = syncState.value.instrument
+        if (!instrument)
+          break
+
+        const volume = instruments[instrument].volume
+        const v = Math.max(0, volume - 25)
+
+        if (v === 0) {
+          if (instrument === 'all') {
+            for (const x of all) {
+              instruments[x].playing = false
+            }
+          }
+          else {
+            instruments[instrument].playing = false
+          }
+        }
+        else {
+          if (instrument === 'all') {
+            for (const x of all) {
+              instruments[x].volume = v
+            }
+          }
+          else {
+            instruments[instrument].volume = v
+          }
         }
         break
       }
 
       case 'volume up':{
-        if (syncState.value.instrument) {
-          const volume = instruments[syncState.value.instrument].volume
-          instruments[syncState.value.instrument].volume = Math.min(100, volume + 50)
+        const instrument = syncState.value.instrument
+        if (!instrument)
+          break
+
+        const volume = instruments[instrument].volume
+        const v = Math.min(100, volume + 25)
+
+        if (instrument === 'all') {
+          for (const x of all) {
+            instruments[x].volume = v
+          }
+        }
+        else {
+          instruments[instrument].volume = v
         }
         break
       }
 
       case 'speed down':{
-        if (syncState.value.instrument) {
-          const speed = instruments[syncState.value.instrument].speed
-          instruments[syncState.value.instrument].speed = Math.max(0.25, speed - 0.25)
+        const instrument = syncState.value.instrument
+        if (!instrument)
+          break
+
+        const speed = instruments[instrument].speed
+        const v = Math.max(0.25, speed - 0.25)
+        if (instrument === 'all') {
+          for (const x of all) {
+            instruments[x].speed = v
+          }
+        }
+        else {
+          instruments[instrument].speed = v
         }
         break
       }
 
       case 'speed up':{
-        if (syncState.value.instrument) {
-          const speed = instruments[syncState.value.instrument].speed
-          instruments[syncState.value.instrument].speed = Math.min(2.0, speed + 0.25)
+        const instrument = syncState.value.instrument
+        if (!instrument)
+          break
+
+        const speed = instruments[instrument].speed
+        const v = Math.min(2.0, speed + 0.25)
+        if (instrument === 'all') {
+          for (const x of all) {
+            instruments[x].speed = v
+          }
+        }
+        else {
+          instruments[instrument].speed = v
         }
         break
       }
@@ -119,10 +171,11 @@ function onPredict(v: DrawCanvasPrediction & { dev: boolean }) {
       }
 
       case 'all':{
-        syncState.value.instrument = undefined
         const entries = Object.entries(syncState.value.instruments) as [Instrument, StateInstrument][]
         const every = entries.every(([_, v]) => v.playing)
         entries.forEach(([_, v]) => v.playing = !every)
+
+        syncState.value.instrument = every ? undefined : v.label
         break
       }
     }
@@ -279,24 +332,28 @@ onMounted(reset)
                 v-for="[k, v] in Object.entries(syncState.instruments)"
                 :key="k"
                 class="*:py-1 *:px-2"
-                :class="{ 'text-success': syncState.instrument === k }"
+                :class="{
+                  'text-success': syncState.instrument === 'all' || syncState.instrument === k,
+                }"
               >
-                <td class="text-left">
-                  {{ k }}
-                </td>
-                <td class="text-center">
-                  {{ v.volume }}%
-                </td>
-                <td class="text-center">
-                  {{ v.speed.toFixed(2) }}x
-                </td>
-                <td
-                  class="group flex justify-end items-center"
-                  :data-playing="v.playing"
-                >
+                <template v-if="k !== 'all'">
+                  <td class="text-left">
+                    {{ k }}
+                  </td>
+                  <td class="text-center">
+                    {{ v.volume }}%
+                  </td>
+                  <td class="text-center">
+                    {{ v.speed.toFixed(2) }}x
+                  </td>
+                  <td
+                    class="group flex justify-end items-center"
+                    :data-playing="v.playing"
+                  >
                   &nbsp;
-                  <div class="rounded-full size-2 transition-colors bg-error group-data-[playing=true]:bg-success mr-[3ch]" />
-                </td>
+                    <div class="rounded-full size-2 transition-colors bg-error group-data-[playing=true]:bg-success mr-[3ch]" />
+                  </td>
+                </template>
               </tr>
             </tbody>
           </table>

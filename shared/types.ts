@@ -33,7 +33,6 @@ export interface Features {
 
 export type Command = typeof COMMAND_LABELS[keyof typeof COMMAND_LABELS]
 export type Instrument = typeof INSTRUMENT_LABELS[keyof typeof INSTRUMENT_LABELS]
-export type InstrumentWithoutAll = Exclude<Instrument, 'all'>
 
 export interface StateInstrument {
   volume: number
@@ -43,8 +42,8 @@ export interface StateInstrument {
 
 export interface SyncState {
   time: number
-  instrument: InstrumentWithoutAll | undefined
-  instruments: Record<InstrumentWithoutAll, StateInstrument>
+  instrument: Instrument | undefined
+  instruments: Record<Instrument, StateInstrument>
 }
 
 export interface LocalState {

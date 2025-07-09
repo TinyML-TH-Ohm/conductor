@@ -25,6 +25,11 @@ export function useSyncState() {
         speed: 1.0,
         playing: false,
       },
+      all: {
+        volume: 100,
+        speed: 1.0,
+        playing: false,
+      },
     },
   }
 
@@ -49,7 +54,7 @@ export function useLocalState() {
     connected: false,
     drawing: false,
     muted: false,
-    threshold: 75,
+    threshold: 60,
     last: {
       label: undefined,
       score: 0,
